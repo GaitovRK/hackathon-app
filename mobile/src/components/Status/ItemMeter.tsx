@@ -1,25 +1,22 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { t } from "@/i18n/t";
-import { useTheme } from "@/theme/useTheme";
+import { displayStyle, useTheme } from "@/theme/useTheme";
+import { ProgressBar } from "./SegmentedProgress";
 
 type Props = { count: number; limit: number | null };
 
-/** "23 / 50" closet meter: a chunky bar for free users, "23 items" for Pro (no limit). */
+/** "23 / 50" closet meter: a serif number + a thin ink bar for free users (volt when full), "23 items" for Pro. */
 export function ItemMeter({ count, limit }: Props) {
-  const { colors, radius, spacing, fontSize, fontFamily, block } = useTheme();
+  const { colors, spacing } = useTheme();
   const ratio = limit ? Math.min(1, count / limit) : 0;
   return (
-    <View testID="item-meter" style={{ gap: spacing.xs }}>
-      <Text style={{ color: colors.foreground, fontSize: fontSize.xl, fontFamily: fontFamily.display }}>
-        {limit === null ? t("closet.count", { count }) : `${count} / ${limit}`}
-      </Text>
+    <View testID="item-meter" style={{ gap: spacing.sm }}>
+      <Text style={displayStyle(34, colors.ink)}>{limit === null ? t("closet.count", { count }) : `${count} / ${limit}`}</Text>
       {limit !== null ? (
-        <View style={[styles.bar, { borderColor: colors.border, borderWidth: block.buttonBorder, borderRadius: radius.full, backgroundColor: colors.surface }]}>
-          <View style={{ width: `${ratio * 100}%`, height: "100%", backgroundColor: ratio >= 1 ? colors.warning : colors.accentSoft }} />
+        <View style={{ flexDirection: "row" }}>
+          <ProgressBar value={ratio} />
         </View>
       ) : null}
     </View>
   );
 }
-
-const styles = StyleSheet.create({ bar: { height: 14, overflow: "hidden" } });

@@ -1,9 +1,10 @@
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import Svg, { G, Line, Path } from "react-native-svg";
+import Svg, { Line, Path } from "react-native-svg";
+import { Icon } from "@/components/Icons/Icon";
 import type { GarmentColor, ItemCategory, Pattern } from "@/services/api/types";
 import { useTheme } from "@/theme/useTheme";
-import { shapeFor, tiltFor } from "./garmentShapes";
+import { shapeFor } from "./garmentShapes";
 
 export type TileGarment = {
   name: string;
@@ -19,53 +20,59 @@ type Props = {
   size?: number;
   label?: boolean;
   selected?: boolean;
-  /** Picker tiles get a thicker cut (board `.tile .st`). */
+  /** Kept for backward compatibility (the old sticker cut); ignored. */
   thickCut?: boolean;
-  /** Tilt in degrees; defaults to a deterministic lean per garment. */
+  /** Kept for backward compatibility; cutouts sit straight. */
   tilt?: number;
   onPress?: () => void;
   testID?: string;
 };
 
+type CutoutProps = Pick<Props, "garment" | "size"> & { width?: number; height?: number; ghost?: boolean };
+
 /**
- * One garment as a die-cut sticker (board `.st`): the silhouette drawn as a hard offset shadow, a thick
- * white cut, the tinted body, then seam lines and buttons. A photo item shows its `imageUrl` instead.
+ * One garment as a flat cutout (board `.gv`): the tinted silhouette with a faint edge, then seam lines and
+ * buttons. No white cut, tilt or shadow. A photo item shows its `imageUrl` instead. `ghost` draws the grey
+ * locked silhouette.
  */
-export function GarmentSticker({ garment, size = 96, thickCut = false, tilt }: Pick<Props, "garment" | "size" | "thickCut" | "tilt">) {
+export function GarmentCutout({ garment, size = 96, width, height, ghost = false }: CutoutProps) {
   const { colors, radius, garment: palette, darkGarments, block } = useTheme();
-  if (garment.imageUrl) {
-    return <Image source={{ uri: garment.imageUrl }} style={{ width: size, height: size, borderRadius: radius.md }} contentFit="cover" accessibilityLabel={garment.name} />;
+  const w = width ?? size;
+  const h = height ?? size;
+  if (garment.imageUrl && !ghost) {
+    return <Image source={{ uri: garment.imageUrl }} style={{ width: w, height: h, borderRadius: radius.md }} contentFit="contain" accessibilityLabel={garment.name} />;
   }
-  const fill = palette[garment.primaryColor] ?? palette.grey;
+  const fill = ghost ? colors.ghost : (palette[garment.primaryColor] ?? palette.grey);
   const shape = shapeFor(garment.category, garment.subcategory);
-  const cut = thickCut ? block.stickerStrokeTile : block.stickerStroke;
-  const detail = darkGarments.has(garment.primaryColor) ? colors.stickerDetailLight : colors.stickerDetail;
-  const angle = tilt ?? tiltFor(garment.name, block.stickerTilt);
+  const detail = ghost ? "transparent" : darkGarments.has(garment.primaryColor) ? colors.stickerDetailLight : colors.stickerDetail;
   return (
-    <Svg width={size} height={size} viewBox="-10 -10 120 120" accessibilityLabel={garment.name}>
-      <G rotation={angle} origin="50, 50">
-        <G y={block.stickerShadowOffset}>
-          <Path d={shape.body} fill={colors.stickerShadow} stroke={colors.stickerShadow} strokeWidth={cut} strokeLinejoin="round" />
-        </G>
-        <Path d={shape.body} fill={colors.sticker} stroke={colors.sticker} strokeWidth={cut} strokeLinejoin="round" />
-        <Path d={shape.body} fill={fill} stroke={colors.stickerBodyStroke} strokeWidth={block.stickerBodyStroke} strokeLinejoin="round" />
-        {shape.detail ? <Path d={shape.detail} fill="none" stroke={detail} strokeWidth={block.stickerDetailStroke} strokeLinecap="round" strokeLinejoin="round" /> : null}
-        {shape.dots ? <Path d={shape.dots} fill="none" stroke={detail} strokeWidth={block.stickerDotStroke} strokeLinecap="round" /> : null}
-        {garment.pattern === "stripe" ? [24, 38, 52, 66, 80].map((y) => <Line key={y} x1={20} x2={80} y1={y} y2={y} stroke={detail} strokeWidth={1.4} />) : null}
-        {garment.pattern === "check"
-          ? [30, 50, 70].flatMap((p) => [
-              <Line key={`h${p}`} x1={20} x2={80} y1={p} y2={p} stroke={detail} strokeWidth={1.4} />,
-              <Line key={`v${p}`} x1={p} x2={p} y1={14} y2={88} stroke={detail} strokeWidth={1.4} />,
-            ])
-          : null}
-      </G>
+    <Svg width={w} height={h} viewBox="0 0 100 100"accessibilityLabel={garment.name}>
+      <Path d={shape.body} fill={fill} stroke={ghost ? "none" : colors.stickerBodyStroke} strokeWidth={block.stickerBodyStroke} strokeLinejoin="round" />
+      {shape.detail ? <Path d={shape.detail} fill="none" stroke={detail} strokeWidth={block.stickerDetailStroke} strokeLinecap="round" strokeLinejoin="round" /> : null}
+      {shape.dots ? <Path d={shape.dots} fill="none" stroke={detail} strokeWidth={block.stickerDotStroke} strokeLinecap="round" /> : null}
+      {!ghost && garment.pattern === "stripe" ? [24, 38, 52, 66, 80].map((y) => <Line key={y} x1={20} x2={80} y1={y} y2={y} stroke={detail} strokeWidth={1.4} />) : null}
+      {!ghost && garment.pattern === "check"
+        ? [30, 50, 70].flatMap((p) => [
+            <Line key={`h${p}`} x1={20} x2={80} y1={p} y2={p} stroke={detail} strokeWidth={1.4} />,
+            <Line key={`v${p}`} x1={p} x2={p} y1={14} y2={88} stroke={detail} strokeWidth={1.4} />,
+          ])
+        : null}
     </Svg>
   );
 }
 
-/** A sticker on a tappable tile with an optional label; `selected` draws the chunky edge + hard shadow (board `.tile.sel`). */
-export function ItemTile({ garment, size = 96, label = false, selected = false, thickCut = false, tilt, onPress, testID }: Props) {
+/** @deprecated the sticker look is gone; kept so older imports still compile. */
+export function GarmentSticker({ garment, size = 96 }: Pick<Props, "garment" | "size" | "thickCut" | "tilt">) {
+  return <GarmentCutout garment={garment} size={size} />;
+}
+
+/**
+ * A cutout on a mist tile with an optional label (board `.tile`). Pickable tiles (`onPress`) show a check:
+ * a hollow ring when not picked, a filled ink check + 2px ink outline when `selected`.
+ */
+export function ItemTile({ garment, size = 96, label = false, selected = false, onPress, testID }: Props) {
   const { colors, radius, spacing, fontSize, fontFamily, block } = useTheme();
+  const art = Math.round(size * 0.72);
   return (
     <Pressable
       testID={testID}
@@ -74,29 +81,30 @@ export function ItemTile({ garment, size = 96, label = false, selected = false, 
       accessibilityState={{ selected }}
       disabled={!onPress}
       onPress={onPress}
-      style={[styles.tile, { width: size + spacing.sm * 2, paddingBottom: block.tileShadowOffset }]}
+      style={({ pressed }) => [
+        styles.tile,
+        { width: size, minHeight: size, borderRadius: radius.tile, backgroundColor: colors.tile, padding: spacing.sm, gap: spacing.xs + 2 },
+        selected && { borderWidth: block.selectedBorder, borderColor: colors.ink, padding: spacing.sm - block.selectedBorder },
+        pressed && styles.pressed,
+      ]}
     >
-      {selected ? <View style={[styles.shadow, { backgroundColor: colors.border, borderRadius: radius.tile, top: block.tileShadowOffset }]} /> : null}
-      <View
-        style={{
-          alignItems: "center",
-          gap: spacing.xs,
-          padding: spacing.sm,
-          borderRadius: radius.tile,
-          backgroundColor: selected ? colors.accentSoft : colors.tile,
-          borderWidth: block.tileBorder,
-          borderColor: selected ? colors.border : colors.borderSoft,
-        }}
-      >
-        <GarmentSticker garment={garment} size={size - spacing.sm * 2} thickCut={thickCut || selected} tilt={tilt} />
-        {label ? (
-          <Text numberOfLines={2} style={{ color: colors.foreground, fontSize: fontSize.xs, fontFamily: fontFamily.bodyBold, textAlign: "center" }}>
-            {garment.name}
-          </Text>
-        ) : null}
-      </View>
+      {onPress ? (
+        <View style={[styles.tick, selected ? { backgroundColor: colors.ink } : { borderWidth: 1.5, borderColor: colors.ink3 }]}>
+          {selected ? <Icon name="check" size={13} color={colors.paper} strokeWidth={3} /> : null}
+        </View>
+      ) : null}
+      <GarmentCutout garment={garment} size={art} />
+      {label ? (
+        <Text numberOfLines={2} style={{ color: colors.ink, fontSize: fontSize.xs - 0.5, lineHeight: 13, fontFamily: fontFamily.bodySemibold, textAlign: "center" }}>
+          {garment.name}
+        </Text>
+      ) : null}
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({ tile: { alignItems: "stretch" }, shadow: { position: "absolute", left: 0, right: 0, bottom: 0 } });
+const styles = StyleSheet.create({
+  tile: { alignItems: "center", justifyContent: "center" },
+  tick: { position: "absolute", right: 7, top: 7, width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center", zIndex: 2 },
+  pressed: { transform: [{ scale: 0.97 }] },
+});
