@@ -22,6 +22,7 @@ describe('EntitlementService', () => {
     await expect(svc.isPro('user-1', NOW)).resolves.toBe(true);
     expect(fetchMock).toHaveBeenCalledWith('https://api.revenuecat.com/v1/subscribers/user-1', {
       headers: { Authorization: 'Bearer sk_test_secret' },
+      signal: expect.any(AbortSignal),
     });
   });
 
@@ -64,5 +65,26 @@ describe('EntitlementService', () => {
 
     await svc.isPro('other', NOW + 61_000);
     expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it('does not cache a failed lookup', async () => {
+    const fetchMock = mockFetchJson({}, false, 500);
+    global.fetch = fetchMock as unknown as typeof fetch;
+    const svc = new EntitlementService(env);
+
+    await expect(svc.isPro('u', NOW)).resolves.toBe(false);
+    global.fetch = mockFetchJson({ subscriber: { entitlements: { pro: { expires_date: null } } } }) as unknown as typeof fetch;
+    await expect(svc.isPro('u', NOW + 1_000)).resolves.toBe(true);
+  });
+
+  it('forget drops the cached answer so a fresh purchase is seen at once', async () => {
+    global.fetch = mockFetchJson({ subscriber: { entitlements: {} } }) as unknown as typeof fetch;
+    const svc = new EntitlementService(env);
+    await expect(svc.isPro('u', NOW)).resolves.toBe(false);
+
+    global.fetch = mockFetchJson({ subscriber: { entitlements: { pro: { expires_date: null } } } }) as unknown as typeof fetch;
+    await expect(svc.isPro('u', NOW + 1_000)).resolves.toBe(false); // still cached
+    svc.forget('u');
+    await expect(svc.isPro('u', NOW + 2_000)).resolves.toBe(true);
   });
 });

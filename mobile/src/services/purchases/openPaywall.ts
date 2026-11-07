@@ -25,6 +25,13 @@ export async function openPaywall({ force = false }: { force?: boolean } = {}): 
 
 export const didPurchase = (result: PAYWALL_RESULT) => result === PAYWALL_RESULT.PURCHASED || result === PAYWALL_RESULT.RESTORED;
 
+/** Whether RevenueCat already has `pro` for this user (the server may still answer from its cache). */
+export async function hasProInStore(): Promise<boolean> {
+  if (!(await ready())) return false;
+  const info = await Purchases.getCustomerInfo();
+  return !!info.entitlements.active[PRO_ENTITLEMENT];
+}
+
 /** Restores store purchases; resolves whether `pro` is active afterwards, or null when purchases are unavailable. */
 export async function restorePurchases(): Promise<boolean | null> {
   if (!(await ready())) return null;

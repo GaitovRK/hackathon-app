@@ -17,7 +17,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     setQuotaExceededHandler(() => void presentPaywall());
-    setPaywallUnlockedHandler(() => store.dispatch(api.util.invalidateTags(["Me", "Outfit"])));
+    setPaywallUnlockedHandler(() => void store.dispatch(api.endpoints.syncMe.initiate()));
     void bootstrapSession(store.dispatch);
     return () => {
       setQuotaExceededHandler(null);

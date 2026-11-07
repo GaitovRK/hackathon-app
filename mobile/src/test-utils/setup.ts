@@ -7,6 +7,7 @@ jest.mock("react-native-purchases", () => ({
     logIn: jest.fn(),
     getOfferings: jest.fn(async () => ({ all: {}, current: null })),
     restorePurchases: jest.fn(async () => ({ entitlements: { active: {} } })),
+    getCustomerInfo: jest.fn(async () => ({ entitlements: { active: {} } })),
   },
 }));
 

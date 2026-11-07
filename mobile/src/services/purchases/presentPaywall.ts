@@ -1,6 +1,7 @@
 import { Alert } from "react-native";
 import { t } from "@/i18n/t";
-import { didPurchase, openPaywall } from "./openPaywall";
+import { PAYWALL_RESULT } from "react-native-purchases-ui";
+import { didPurchase, hasProInStore, openPaywall } from "./openPaywall";
 import { isPurchasingEnabled } from "./revenueCat";
 
 /**
@@ -15,14 +16,19 @@ export function setPaywallUnlockedHandler(next: (() => void) | null) {
   onUnlocked = next;
 }
 
-/** Presents the dashboard paywall unless the user already has `pro`. Resolves true after a purchase / restore. */
+/**
+ * Presents the dashboard paywall unless the user already has `pro`. Resolves true after a purchase / restore,
+ * and also when the paywall is skipped because RevenueCat already has `pro` while the server still said free
+ * (a 402 right after buying): the unlocked handler then syncs the server instead of nothing happening.
+ */
 export async function presentPaywall(): Promise<boolean> {
   if (!isPurchasingEnabled()) {
     Alert.alert(t("paywall.title"), t("paywall.unavailable"));
     return false;
   }
   try {
-    const unlocked = didPurchase(await openPaywall());
+    const result = await openPaywall();
+    const unlocked = didPurchase(result) || (result === PAYWALL_RESULT.NOT_PRESENTED && (await hasProInStore()));
     if (unlocked) onUnlocked?.();
     return unlocked;
   } catch {

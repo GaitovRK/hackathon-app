@@ -85,6 +85,8 @@ export const api = createApi({
       query: () => ({ url: AUTH_URL, method: "POST" }),
     }),
     me: build.query<MeResponse, void>({ query: () => "me", providesTags: ["Me"] }),
+    /** After a purchase / restore: the server re-reads the entitlement from RevenueCat (skips its 60 s cache). */
+    syncMe: build.mutation<MeResponse, void>({ query: () => ({ url: "me/sync", method: "POST" }), invalidatesTags: ["Me", "Outfit"] }),
 
     // Generations (fal; reused for garment cutouts later)
     createGeneration: build.mutation<Generation, CreateGenerationRequest>({
@@ -175,6 +177,7 @@ export const api = createApi({
 export const {
   useAuthAnonymousMutation,
   useMeQuery,
+  useSyncMeMutation,
   useCreateGenerationMutation,
   useGetGenerationQuery,
   useStyleProfileQuery,

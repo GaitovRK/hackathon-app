@@ -56,7 +56,8 @@ export async function bootTestApp(): Promise<TestApp> {
     const url = String(input);
     const userId = decodeURIComponent(url.split('/subscribers/')[1] ?? '');
     if (proUserIds.has(userId)) return { ok: true, status: 200, json: async () => ({ subscriber: { entitlements: { pro: { expires_date: null } } } }) };
-    return { ok: false, status: 404, json: async () => ({}) };
+    // Like RevenueCat: an unknown or free user is a 200 with no entitlements.
+    return { ok: true, status: 200, json: async () => ({ subscriber: { entitlements: {} } }) };
   }) as unknown as typeof fetch;
 
   const fal: FalMock = {
