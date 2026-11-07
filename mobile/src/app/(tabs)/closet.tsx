@@ -6,6 +6,7 @@ import { ItemTagSheet } from "@/components/Sheets/ItemTagSheet";
 import { StatusMessage } from "@/components/Status/StatusMessage";
 import { t } from "@/i18n/t";
 import type { Item } from "@/services/api/types";
+import { openAddPhoto } from "@/services/navigation/routes";
 import { useAppSelector } from "@/store";
 import { useArchiveItemMutation, useItemsQuery, useMeQuery, usePatchItemMutation } from "@/store/api";
 
@@ -33,6 +34,7 @@ export default function ClosetScreen() {
           toCheckCount={ITEMS_TO_CHECK}
           onOpenItem={setEditing}
           onAddBasics={() => router.push({ pathname: "/onboarding/closet", params: { mode: "add" } })}
+          onAddPhoto={openAddPhoto}
         />
       ) : null}
       {editing ? (

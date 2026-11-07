@@ -14,6 +14,7 @@ import { useProPaywall } from "@/hooks/purchases/useProPaywall";
 import { t, type MessageKey } from "@/i18n/t";
 import { localDate, templateFor, type Item, type ItemCategory } from "@/services/api/types";
 import { useAppSelector } from "@/store";
+import { openAddPhoto } from "@/services/navigation/routes";
 import { useItemsQuery, useSaveIdeasMutation } from "@/store/api";
 import { useTheme } from "@/theme/useTheme";
 
@@ -116,7 +117,7 @@ export default function DressMeScreen() {
       ) : null}
 
       {allStarter ? (
-        <BannerVolt testID="dressme-add-photos" title={t("dressMe.bannerTitle")} subtitle={t("dressMe.bannerBody")} actionLabel={t("dressMe.addPhotos")} onAction={() => router.push({ pathname: "/onboarding/closet", params: { mode: "add" } })} />
+        <BannerVolt testID="dressme-add-photos" title={t("dressMe.bannerTitle")} subtitle={t("dressMe.bannerBody")} actionLabel={t("dressMe.addPhotos")} onAction={openAddPhoto} />
       ) : null}
 
       {error ? <StatusMessage kind="error" message={t("status.error")} /> : null}
