@@ -11,6 +11,10 @@ export const envSchema = z.object({
   FREE_ITEM_LIMIT: z.coerce.number().int().min(0).default(50),
   /** Free `GET /outfits/today?refresh=1` regenerations per day; Pro is unlimited. */
   FREE_REFRESH_LIMIT: z.coerce.number().int().min(0).default(1),
+  /** `POST /outfits/ideas`: how many ideas Free sees unlocked; the rest come back as locked silhouettes. */
+  FREE_IDEAS_VISIBLE: z.coerce.number().int().min(0).default(3),
+  /** `POST /outfits/ideas`: how many ideas Pro gets (and Free is told about). */
+  PRO_IDEAS_MAX: z.coerce.number().int().min(1).default(12),
   PORT: z.coerce.number().int().positive().default(3000),
 });
 
