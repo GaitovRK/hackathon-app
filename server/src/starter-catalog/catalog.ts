@@ -34,7 +34,7 @@ const EVERYDAY: Occasion[] = ['work', 'friends', 'date', 'casual', 'travel'];
  */
 export const STARTER_CATALOG: StarterItem[] = [
   // Womenswear
-  { starterKey: 'white-silk-shell', name: 'White silk shell', category: 'top', subcategory: 'blouse', primaryColor: 'white', pattern: 'solid', material: 'silk', formality: 4, warmth: 1, seasons: ALL, occasions: SMART, wardrobe: 'womenswear' },
+  { starterKey: 'white-silk-shell', name: 'White silk shell', category: 'top', subcategory: 'shell', primaryColor: 'white', pattern: 'solid', material: 'silk', formality: 4, warmth: 1, seasons: ALL, occasions: SMART, wardrobe: 'womenswear' },
   { starterKey: 'cream-knit-cardigan', name: 'Cream knit cardigan', category: 'top', subcategory: 'cardigan', primaryColor: 'cream', pattern: 'texture', material: 'wool', formality: 3, warmth: 3, seasons: MILD, occasions: EVERYDAY, wardrobe: 'womenswear' },
   { starterKey: 'breton-tee', name: 'Striped breton tee', category: 'top', subcategory: 'breton', primaryColor: 'white', secondaryColor: 'navy', pattern: 'stripe', material: 'cotton', formality: 2, warmth: 2, seasons: ALL, occasions: CASUAL, wardrobe: 'womenswear' },
   { starterKey: 'cream-silk-blouse', name: 'Cream silk blouse', category: 'top', subcategory: 'blouse', primaryColor: 'cream', pattern: 'solid', material: 'silk', formality: 4, warmth: 2, seasons: ALL, occasions: WORKY, wardrobe: 'womenswear' },

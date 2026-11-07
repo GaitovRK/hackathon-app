@@ -18,7 +18,7 @@ const g = (starterKey: string, name: string, category: ItemCategory, subcategory
 /** Visuals of the starter basics used by the looks (ids match `server/src/starter-catalog/catalog.ts`). */
 const G = {
   // Womenswear
-  silkShell: g("white-silk-shell", "White silk shell", "top", "blouse", "white"),
+  silkShell: g("white-silk-shell", "White silk shell", "top", "shell", "white"),
   cardigan: g("cream-knit-cardigan", "Cream knit cardigan", "top", "cardigan", "cream", "texture"),
   breton: g("breton-tee", "Striped breton tee", "top", "breton", "white", "stripe"),
   midiSkirt: g("black-midi-skirt", "Black midi skirt", "bottom", "midi_skirt", "black"),
