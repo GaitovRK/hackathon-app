@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Flick — Final Direction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E4E5E8; --screen:#F6F6F3; --surface:#FFFFFF; --soft:#ECEDF0;
+  --ink:#15171C; --ink-2:#5C606B; --edge:#15171C; --line:rgba(21,23,28,.12);
+  --accent:#2E54E8; --on-accent:#FFFFFF; --pop:#FFD23F; --coral:#FF6A4D; --chip:#FFFFFF;
+  --on-block:#15171C;
+  /* outfit blocks: derived per look from its dominant + accent garment colors */
+  --camel:#F2B35E; --navy:#22336B; --cobalt:#3D63F0; --sky:#A9C4FF; --blush:#FFC2B0; --butter:#FFD23F; --sage:#A8D5B0;
+  --r-card:26px; --r-btn:16px; --r-tile:18px;
+  --display:'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+  --body:'Figtree', ui-sans-serif, system-ui, sans-serif;
+  --s:.84;
+  color-scheme:light;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow-x:hidden;color-scheme:light}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased;padding:32px 32px 56px}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+.d{font-family:var(--display);font-weight:800;letter-spacing:-.025em;line-height:.95}
+
+/* ---------- board header ---------- */
+.top{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;justify-content:space-between;margin-bottom:24px}
+.brand{display:flex;gap:18px;align-items:center}
+.mark{width:64px;height:76px;position:relative;flex:none}
+.mark i{position:absolute;inset:0;border:3px solid var(--edge);border-radius:14px;box-shadow:0 4px 0 var(--edge)}
+.mark i:nth-child(1){background:var(--coral);transform:rotate(-12deg) translate(-6px,2px)}
+.mark i:nth-child(2){background:var(--cobalt);transform:rotate(-3deg)}
+.mark i:nth-child(3){background:var(--butter);transform:rotate(7deg) translate(4px,-2px)}
+.brand h1{font-size:72px}
+.kicker{font:700 13px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin-bottom:6px}
+.why{max-width:560px;font-size:17px;line-height:1.4;color:var(--ink-2);margin-top:8px}
+.why b{color:var(--ink)}
+.src{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;font:700 12.5px var(--body);color:var(--ink)}
+.src span{background:#FFFFFF;border:2px solid var(--edge);border-radius:8px;padding:3px 8px}
+.src span b{color:var(--accent)}
+
+/* ---------- tokens ---------- */
+.tokens{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:36px}
+.tk{background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:12px 14px;display:flex;gap:12px;align-items:center;min-width:180px}
+.sw{width:44px;height:44px;border-radius:12px;border:2px solid var(--edge);flex:none}
+.tk b{display:block;font-size:14px}
+.tk small{display:block;font-size:12px;color:var(--ink-2);line-height:1.35}
+.tk.wide{min-width:250px;flex-direction:column;align-items:flex-start;gap:4px}
+.blocks-row{display:flex;gap:4px}
+.blocks-row span{width:22px;height:22px;border-radius:6px;border:2px solid var(--edge)}
+
+/* ---------- frames ---------- */
+.row{display:flex;flex-wrap:wrap;gap:20px 20px;align-items:flex-start}
+.frame{width:calc(410px * var(--s));flex:none}
+.frame h2{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:-.01em;margin-bottom:10px;display:flex;gap:8px;align-items:baseline}
+.frame h2 span{font-family:var(--body);font-size:12px;font-weight:800;background:var(--ink);color:var(--screen);padding:2px 7px;border-radius:6px}
+.holder{width:calc(410px * var(--s));height:calc(864px * var(--s))}
+.device{width:410px;height:864px;padding:10px;border-radius:62px;background:#0B0C0F;transform:scale(var(--s));transform-origin:top left;box-shadow:0 0 0 1.5px #34363c inset}
+.phone{position:relative;width:390px;height:844px;border-radius:52px;overflow:hidden;background:var(--screen);color:var(--ink)}
+@media (max-width:1919px){:root{--s:.7}}
+@media (max-width:1599px){:root{--s:.62}}
+@media (max-width:1439px){:root{--s:.66}}
+@media (max-width:760px){body{padding:20px 16px 40px}:root{--s:.78}.brand h1{font-size:54px}}
+@media (max-width:380px){:root{--s:.7}}
+
+/* status bar + home indicator */
+.sb{position:absolute;top:0;left:0;right:0;height:50px;display:flex;align-items:center;justify-content:space-between;padding:6px 30px 0 36px;font:700 16px var(--body);z-index:20}
+.isl{position:absolute;left:50%;top:11px;width:122px;height:35px;border-radius:20px;background:#000;transform:translateX(-50%)}
+.hi{position:absolute;bottom:8px;left:50%;width:134px;height:5px;border-radius:3px;background:var(--ink);transform:translateX(-50%);z-index:30}
+.on-block{color:var(--on-block)}
+
+/* ---------- stickers ---------- */
+.st{position:absolute;height:auto;aspect-ratio:1;overflow:visible;transform:rotate(var(--r,0deg));filter:drop-shadow(0 3px 0 rgba(0,0,0,.22))}
+.cut{fill:#fff;stroke:#fff;stroke-width:var(--cw,7);stroke-linejoin:round}
+.bd{fill:var(--c,#ccc);stroke:rgba(0,0,0,.16);stroke-width:1}
+.dt{fill:none;stroke:var(--d,rgba(0,0,0,.28));stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.dot{fill:none;stroke:var(--d,rgba(0,0,0,.3));stroke-width:3;stroke-linecap:round}
+.blk{position:absolute}
+.fl{position:relative;overflow:hidden}
+
+/* ---------- shared UI ---------- */
+.ico{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;height:58px;padding:0 20px;border-radius:var(--r-btn);border:2.5px solid var(--edge);box-shadow:0 5px 0 var(--edge);font:800 17px var(--body);background:var(--accent);color:var(--on-accent);transition:transform .08s ease, box-shadow .08s ease}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--edge)}
+.btn.alt{background:var(--surface);color:var(--ink)}
+.btn.pop{background:var(--pop);color:#15171C}
+.rb{width:52px;height:52px;padding:0;border-radius:50%;flex:none}
+.chip{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:999px;border:2px solid var(--edge);background:var(--chip);font:700 14px var(--body);color:var(--ink);white-space:nowrap;flex:none}
+.chip.on{background:var(--ink);color:var(--screen)}
+.pill{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 10px;border-radius:999px;font:800 12px var(--body);white-space:nowrap}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:86px;background:var(--surface);border-top:2px solid var(--line);display:flex;justify-content:space-around;padding-top:10px;z-index:10}
+.tabbar a{display:flex;flex-direction:column;align-items:center;gap:3px;font:700 11px var(--body);color:var(--ink-2);text-decoration:none;width:70px}
+.tabbar a.on{color:var(--ink)}
+.tabbar a.on .tbi{background:var(--pop);border:2px solid var(--edge)}
+.tbi{width:44px;height:30px;border-radius:10px;display:grid;place-items:center;border:2px solid transparent}
+.tbi .ico{width:20px;height:20px;color:inherit}
+.tabbar a.on .tbi .ico{color:#15171C}
+
+/* ---------- 1 onboarding ---------- */
+.s1 .circle{position:absolute;width:560px;height:560px;border-radius:50%;background:var(--butter);left:-85px;top:200px}
+.s1 .bar{display:flex;gap:3px;margin-top:10px}
+.s1 .bar i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.s1 .bar i.f{background:var(--ink)}
+.s1 .bar i.c{background:var(--accent)}
+.deck{position:absolute;left:45px;top:240px;width:300px;height:380px}
+.lc{position:absolute;inset:0;border:2.5px solid var(--edge);border-radius:var(--r-card);box-shadow:0 6px 0 var(--edge);overflow:hidden}
+.stamp{position:absolute;left:18px;top:22px;z-index:5;transform:rotate(-14deg);font:800 26px var(--display);letter-spacing:-.01em;color:#15171C;background:var(--butter);border:3px solid #15171C;border-radius:10px;padding:4px 12px 6px}
+
+/* ---------- 2 starter ---------- */
+.grid3{position:absolute;left:20px;right:20px;top:236px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tile{position:relative;height:100px;border-radius:var(--r-tile);background:var(--surface);border:2.5px solid var(--line);overflow:hidden}
+.tile.sel{border-color:var(--edge);box-shadow:0 4px 0 var(--edge)}
+.tile .st{left:24%;top:2%;width:52%;--cw:9}
+.tile span{position:absolute;left:8px;right:8px;bottom:7px;font:700 11.5px/1.15 var(--body);text-align:left;color:var(--ink)}
+.tile.sel span{color:#15171C}
+.chk{position:absolute;right:7px;top:7px;width:24px;height:24px;border-radius:50%;background:var(--accent);border:2px solid var(--edge);display:grid;place-items:center;z-index:2}
+.chk .ico{width:14px;height:14px;stroke:#fff;stroke-width:3}
+.add{position:absolute;right:7px;top:7px;width:24px;height:24px;border-radius:50%;border:2px dashed var(--ink-2);display:grid;place-items:center}
+.add .ico{width:12px;height:12px;stroke:var(--ink-2);stroke-width:3}
+
+/* ---------- 3 today ---------- */
+.stack{position:absolute;left:20px;right:20px;top:222px;height:448px}
+.cc{position:absolute;left:0;right:0;border:2.5px solid var(--edge);border-radius:var(--r-card);box-shadow:0 6px 0 var(--edge);overflow:hidden;background:var(--surface)}
+.ph{height:36px;display:flex;align-items:center;gap:8px;padding:0 14px;font:600 12.5px var(--body);white-space:nowrap;overflow:hidden}
+.ph b{font:800 12px var(--body);padding:2px 7px;border-radius:6px;background:rgba(0,0,0,.22);flex:none}
+.ph em{font-style:normal;opacity:.9;overflow:hidden;text-overflow:ellipsis}
+.no{font:800 12px var(--body);padding:3px 8px;border-radius:7px;background:var(--ink);color:var(--screen)}
+
+/* ---------- 4 closet (A layout, C style) ---------- */
+.meter{height:12px;border-radius:6px;background:#ECEDF0;border:2px solid var(--edge);overflow:hidden;margin-top:10px}
+.meter i{display:block;height:100%;width:46%;background:var(--accent);border-right:2px solid var(--edge)}
+.tag{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 9px;border-radius:9px;background:#ECEDF0;font:700 12px var(--body);color:var(--ink);white-space:nowrap}
+.tag b{font-weight:800}
+.desk{margin-top:14px;background:var(--surface);border:2.5px solid var(--edge);border-radius:22px;box-shadow:0 5px 0 var(--edge);padding:12px}
+.cutout{position:relative;width:118px;height:138px;flex:none;border-radius:16px;background:var(--sky);border:2px solid var(--edge);overflow:hidden}
+.cat{display:grid;grid-template-columns:72px 1fr;gap:10px;align-items:center;padding:8px 0;border-bottom:2px solid var(--line)}
+.cat:last-child{border-bottom:0}
+.cat .n{font:800 16px/1 var(--display);letter-spacing:-.01em}
+.cat .n small{display:block;font:600 12px/1.2 var(--body);color:var(--ink-2);margin-top:3px;letter-spacing:0}
+.minis{display:flex;gap:6px}
+.minis div{position:relative;width:48px;height:48px;flex:none;border-radius:12px;background:var(--surface);border:2px solid var(--line)}
+.minis .st{left:12%;top:8%;width:76%;--cw:10}
+.minis div.more{display:grid;place-items:center;font:800 14px var(--body);color:var(--ink-2);background:#ECEDF0;border:2px dashed rgba(21,23,28,.25)}
+
+/* ---------- 5 paywall ---------- */
+.mini{position:absolute;width:110px;height:140px;border:2.5px solid var(--edge);border-radius:18px;box-shadow:0 5px 0 var(--edge);overflow:hidden}
+.mini .st{--cw:9}
+.ben{display:flex;align-items:center;gap:12px;font-size:14px;line-height:1.2}
+.ben .bi{width:26px;height:26px;border-radius:9px;display:grid;place-items:center;border:2px solid var(--edge);flex:none}
+.ben .bi .ico{width:16px;height:16px;stroke:#15171C;stroke-width:2.4}
+.ben span{color:var(--ink-2)}
+.plan{position:relative;display:flex;align-items:center;gap:12px;height:62px;padding:0 16px;border-radius:18px;border:2px solid var(--line);background:var(--surface)}
+.plan.sel{border:2.5px solid var(--edge);box-shadow:0 4px 0 var(--edge)}
+.radio{width:24px;height:24px;border-radius:50%;border:2.5px solid var(--ink-2);flex:none;display:grid;place-items:center}
+.plan.sel .radio{border-color:var(--edge);background:var(--accent)}
+.plan.sel .radio::after{content:"";width:8px;height:8px;border-radius:50%;background:#fff}
+.best{position:absolute;right:14px;top:-13px;transform:rotate(3deg);background:var(--coral);color:#15171C;border:2px solid var(--edge);border-radius:8px;font:800 11.5px var(--body);padding:3px 8px;letter-spacing:.02em}
+
+@media (prefers-reduced-motion: no-preference){
+  .nudge{animation:nudge 3.6s ease-in-out infinite}
+  @keyframes nudge{0%,55%,100%{transform:rotate(8deg) translateX(34px)}70%{transform:rotate(11deg) translateX(46px)}}
+  .float{animation:float 4s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+}
+@media (prefers-reduced-motion: reduce){.btn{transition:none}}
+</style>
+</head>
+<body>
+
+<!-- ============ garment + icon sprite ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <path id="p-shirt" d="M33 12 L42 9 Q50 14 58 9 L67 12 L83 21 L94 69 L83 72 L74 41 L74 92 L26 92 L26 41 L17 72 L6 69 L17 21 Z"/>
+    <path id="p-knit" d="M31 14 Q50 22 69 14 L85 23 L95 72 L84 76 L76 44 L76 89 Q50 93 24 89 L24 44 L16 76 L5 72 L15 23 Z"/>
+    <path id="p-trousers" d="M28 7 L72 7 L79 93 L58 93 L50 36 L42 93 L21 93 Z"/>
+    <path id="p-blazer" d="M33 10 L44 8 L50 30 L56 8 L67 10 L85 21 L94 74 L84 76 L76 43 L76 91 L24 91 L24 43 L16 76 L6 74 L15 21 Z"/>
+    <path id="p-coat" d="M33 6 L44 4 L50 24 L56 4 L67 6 L85 18 L94 70 L84 73 L77 40 L81 96 L19 96 L23 40 L16 73 L6 70 L15 18 Z"/>
+    <path id="p-dress" d="M38 7 L44 7 Q50 13 56 7 L62 7 L66 30 L60 41 L83 94 Q50 98 17 94 L40 41 L34 30 Z"/>
+    <path id="p-sneaker" d="M7 63 Q8 47 22 45 L38 41 Q46 52 62 55 L84 60 Q94 63 93 73 L10 74 Q6 70 7 63 Z"/>
+    <path id="p-loafer" d="M7 64 Q9 52 25 50 L48 48 Q70 49 86 57 Q95 62 93 72 L11 72 Q6 70 7 64 Z"/>
+    <path id="p-belt" d="M5 43 H95 V57 H5 Z"/>
+    <path id="p-watch" d="M41 6 H59 L61 33 A20 20 0 0 1 61 67 L59 94 H41 L39 67 A20 20 0 0 1 39 33 Z"/>
+
+    <g id="g-shirt"><use href="#p-shirt" class="cut"/><use href="#p-shirt" class="bd"/><path class="dt" d="M42 9 L50 21 L58 9 M50 21 V90 M58 33 h9 v9 h-9 Z M74 41 L72 30 M26 41 L28 30 M8 64 L17 67 M92 64 L83 67"/><path class="dot" d="M50 32 h.1 M50 46 h.1 M50 60 h.1 M50 74 h.1"/></g>
+    <g id="g-knit"><use href="#p-knit" class="cut"/><use href="#p-knit" class="bd"/><path class="dt" d="M37 16 Q50 26 63 16 M25 82 Q50 86 75 82 M7 66 L17 69 M93 66 L83 69 M76 44 L74 32 M24 44 L26 32"/></g>
+    <g id="g-trousers"><use href="#p-trousers" class="cut"/><use href="#p-trousers" class="bd"/><path class="dt" d="M28.6 15 H71.4 M50 15 V34 M38 22 L32 88 M62 22 L68 88"/></g>
+    <g id="g-jeans"><use href="#p-trousers" class="cut"/><use href="#p-trousers" class="bd"/><path class="dt" d="M28.6 15 H71.4 M50 15 V34 M30 22 Q36 27 41 17 M70 22 Q64 27 59 17 M23 86 H41 M59 86 H77"/></g>
+    <g id="g-blazer"><use href="#p-blazer" class="cut"/><use href="#p-blazer" class="bd"/><path class="dt" d="M44 8 L38 28 L45 33 L50 56 L55 33 L62 28 L56 8 M50 56 V91 M29 66 H40 M60 66 H71 M62 41 H70"/><path class="dot" d="M53 64 h.1 M53 74 h.1"/></g>
+    <g id="g-coat"><use href="#p-coat" class="cut"/><use href="#p-coat" class="bd"/><path class="dt" d="M44 4 L37 22 L44 27 L50 46 L55 27 L63 22 L56 4 M50 46 V96 M22 55 H78 M45 52 h10 v6 h-10 Z"/></g>
+    <g id="g-dress"><use href="#p-dress" class="cut"/><use href="#p-dress" class="bd"/><path class="dt" d="M40 41 H60 M50 43 L45 93 M56 50 L64 92"/></g>
+    <g id="g-sneaker"><use href="#p-sneaker" class="cut"/><use href="#p-sneaker" class="bd"/><path class="dt" d="M8 67 H93 M33 44 L38 50 M39 42 L44 48 M45 47 L49 52 M14 57 Q20 51 27 53"/></g>
+    <g id="g-loafer"><use href="#p-loafer" class="cut"/><use href="#p-loafer" class="bd"/><path class="dt" d="M9 67 H92 M42 50 Q55 60 68 52 M50 56 L60 55"/></g>
+    <g id="g-belt"><use href="#p-belt" class="cut"/><use href="#p-belt" class="bd"/><path class="dt" d="M14 40 h14 v20 h-14 Z M21 50 H8"/><path class="dot" d="M44 50 h.1 M52 50 h.1 M60 50 h.1"/></g>
+    <g id="g-watch"><use href="#p-watch" class="cut"/><use href="#p-watch" class="bd"/><circle cx="50" cy="50" r="13" style="fill:#fff;stroke:rgba(0,0,0,.3);stroke-width:1.5"/><path class="dt" d="M50 50 V42 M50 50 L56 53 M41 14 H59 M41 86 H59" style="stroke:rgba(0,0,0,.45)"/></g>
+
+    <g id="i-x"><path d="M6 6l12 12M18 6L6 18"/></g>
+    <g id="i-heart"><path d="M12 20s-7.5-4.6-7.5-10.2A4.2 4.2 0 0 1 12 7.3a4.2 4.2 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"/></g>
+    <g id="i-refresh"><path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v5h-5"/></g>
+    <g id="i-bookmark"><path d="M6.5 4h11v16.5L12 16.8l-5.5 3.7z"/></g>
+    <g id="i-lock"><rect x="5" y="11" width="14" height="9.5" rx="2.5"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></g>
+    <g id="i-check"><path d="M5 12.5l4.5 4.5L19 7.5"/></g>
+    <g id="i-up"><path d="M7.5 10.5v9.5H4.5v-9.5zM7.5 10.5l3.8-6.8c1.4 0 2.4 1 2.1 2.5l-.7 3.5h5.6a2 2 0 0 1 2 2.4l-1.2 6.2a2.5 2.5 0 0 1-2.5 1.7H7.5"/></g>
+    <g id="i-plus"><path d="M12 5v14M5 12h14"/></g>
+    <g id="i-arrow"><path d="M5 12h14M13 6l6 6-6 6"/></g>
+    <g id="i-back"><path d="M19 12H5M11 6l-6 6 6 6"/></g>
+    <g id="i-undo"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3"/></g>
+    <g id="i-cloud"><path d="M7 18h10a4 4 0 0 0 .4-8 5.8 5.8 0 0 0-11.1 1.4A3.4 3.4 0 0 0 7 18z"/></g>
+    <g id="i-sun"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/></g>
+    <g id="i-hanger"><path d="M10 6.5a2 2 0 1 1 2 2v2L3 17.5h18L12 10.5"/></g>
+    <g id="i-user"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></g>
+    <g id="i-pencil"><path d="M4 20h4L19 9l-4-4L4 16z"/></g>
+    <g id="i-scan"><path d="M4 9V5h4M16 5h4v4M20 15v4h-4M8 19H4v-4M8 12h8"/></g>
+    <g id="i-gauge"><path d="M4 17a8 8 0 0 1 16 0M12 17l4-5"/></g>
+    <g id="i-infinity"><path d="M12 12c-2-2.5-3.5-4-5.5-4a4 4 0 0 0 0 8c2 0 3.5-1.5 5.5-4zm0 0c2 2.5 3.5 4 5.5 4a4 4 0 0 0 0-8c-2 0-3.5 1.5-5.5 4z"/></g>
+    <g id="i-camera"><rect x="3.5" y="7" width="17" height="12.5" rx="3"/><circle cx="12" cy="13.2" r="3.3"/><path d="M8.5 7l1.5-2.5h4L15.5 7"/></g>
+  </defs>
+</svg>
+
+<header class="top">
+  <div>
+    <p class="kicker">Final direction &middot; merged from A + C &middot; light only</p>
+    <div class="brand">
+      <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
+      <h1 class="d">Flick</h1>
+    </div>
+    <p class="why"><b>Every outfit is a collectible card in its own colors.</b> C's sticker world on one light canvas, with A's calm closet structure where users do admin work.</p>
+    <p class="src" aria-label="Screen sources"><span>01 <b>C</b> card + <b>A</b> progress</span><span>02 <b>C</b></span><span>03 <b>C</b></span><span>04 <b>A</b> layout, <b>C</b> style</span><span>05 <b>C</b></span></p>
+  </div>
+</header>
+
+<section class="tokens" aria-label="Design tokens">
+  <div class="tk"><span class="sw" style="background:var(--ink)"></span><div><b>Ink</b><small>Text, 2.5px edges, hard shadows<br>#15171C</small></div></div>
+  <div class="tk"><span class="sw" style="background:var(--screen)"></span><div><b>Paper</b><small>Screen background<br>#F6F6F3</small></div></div>
+  <div class="tk"><span class="sw" style="background:var(--accent)"></span><div><b>Cobalt</b><small>Primary action, selected<br>#2E54E8</small></div></div>
+  <div class="tk"><span class="sw" style="background:var(--pop)"></span><div><b>Butter</b><small>Highlight, active tab, Pro<br>#FFD23F</small></div></div>
+  <div class="tk"><span class="sw" style="background:var(--coral)"></span><div><b>Coral</b><small>Badges, "Best value", block<br>#FF6A4D</small></div></div>
+  <div class="tk wide"><b>Outfit blocks (per look)</b><div class="blocks-row"><span style="background:var(--camel)"></span><span style="background:var(--navy)"></span><span style="background:var(--cobalt)"></span><span style="background:var(--sky)"></span><span style="background:var(--blush)"></span><span style="background:var(--sage)"></span></div><small>Dominant garment hue pushed to full saturation + its accent. Light only.</small></div>
+  <div class="tk wide"><b style="font-family:var(--display);font-size:20px;font-weight:800;letter-spacing:-.02em">Bricolage Grotesque 800</b><small>Display. <span style="font-family:var(--body);color:var(--ink)">Figtree 400 / 600 / 800</span> body.</small><small>expo-google-fonts: both available</small></div>
+  <div class="tk wide"><b>Radius 26 card &middot; 18 tile &middot; 16 button &middot; pill chip</b><small>Spacing 4 &middot; 8 &middot; 12 &middot; 16 &middot; 20 gutter &middot; 24 &middot; color-scheme: light</small><small>Sticker: path drawn twice (7px white stroke, then fill) + 3px hard drop (offset copy, no blur). Button: 2.5px edge, 5px offset View, presses down 4px.</small></div>
+</section>
+
+<main class="row">
+
+<!-- ================= 1. STYLE SWIPE ================= -->
+<figure class="frame">
+  <h2><span>01</span>Style swipe onboarding</h2>
+  <div class="holder"><div class="device"><div class="phone s1">
+    <div class="sb"><b>9:41</b><i class="isl"></i><svg width="54" height="12" viewBox="0 0 54 12" fill="currentColor" aria-hidden="true"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/><rect x="27" y=".5" width="23" height="11" rx="3.5" fill="none" stroke="currentColor" opacity=".45"/><rect x="29" y="2.5" width="17" height="7" rx="2"/><rect x="51" y="4" width="2" height="4" rx="1" opacity=".45"/></svg></div>
+    <div class="circle"></div>
+
+    <div style="position:absolute;left:20px;right:20px;top:60px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;align-items:baseline;gap:8px"><span class="d" style="font-size:26px">7 <span style="color:var(--ink-2);font-weight:700">/ 20</span></span><span style="font:700 13px var(--body);color:var(--ink-2)">Taste check</span></div>
+        <button type="button" style="font:700 15px var(--body);color:var(--ink-2)">Skip</button>
+      </div>
+      <div class="bar" aria-label="Look 7 of 20"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="c"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <h3 class="d" style="font-size:30px;margin-top:20px">Would you wear this to work?</h3>
+      <p style="font-size:15px;line-height:1.35;color:var(--ink-2);margin-top:8px">Twenty picks and we know your taste.</p>
+    </div>
+
+    <div class="deck">
+      <div class="lc" style="background:var(--blush);transform:rotate(-7deg) translateX(-14px)"></div>
+      <div class="lc" style="background:var(--sage);transform:rotate(-2deg)"></div>
+      <div class="lc nudge" style="background:var(--sky);transform:rotate(8deg) translateX(34px)">
+        <div class="stamp">VERY ME</div>
+        <div class="fl" style="height:286px">
+          <div class="blk" style="width:150px;height:150px;border-radius:50%;background:var(--cobalt);right:-30px;top:120px"></div>
+          <svg class="st" viewBox="0 0 100 100" style="left:40%;top:6%;width:48%;--c:#F7F6F2;--r:7deg"><use href="#g-shirt"/></svg>
+          <svg class="st" viewBox="0 0 100 100" style="left:2%;top:10%;width:54%;--c:#1F2B55;--d:rgba(255,255,255,.35);--r:-6deg"><use href="#g-blazer"/></svg>
+          <svg class="st" viewBox="0 0 100 100" style="left:34%;top:42%;width:46%;--c:#5079BA;--d:rgba(255,255,255,.4);--r:-3deg"><use href="#g-jeans"/></svg>
+          <svg class="st" viewBox="0 0 100 100" style="left:0%;top:64%;width:40%;--c:#F4F4F0;--r:-10deg"><use href="#g-sneaker"/></svg>
+          <svg class="st" viewBox="0 0 100 100" style="left:78%;top:34%;width:17%;--c:#C7CCD3;--r:14deg"><use href="#g-watch"/></svg>
+        </div>
+        <div style="height:94px;background:var(--navy);color:#fff;padding:14px 16px;border-top:2.5px solid var(--edge)">
+          <div class="d" style="font-size:22px">Look 07 &middot; Smart casual</div>
+          <div style="font-size:13px;opacity:.8;margin-top:6px">Navy blazer, oxford, mid-wash jeans, white sneakers</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="position:absolute;left:0;right:0;top:672px;display:flex;justify-content:center;align-items:center;gap:22px">
+      <button type="button" class="btn alt rb" style="width:66px;height:66px" aria-label="Not for me"><svg class="ico" viewBox="0 0 24 24" style="width:26px;height:26px;stroke-width:2.8"><use href="#i-x"/></svg></button>
+      <button type="button" class="btn alt rb" style="width:46px;height:46px;box-shadow:0 4px 0 var(--edge)" aria-label="Undo"><svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><use href="#i-undo"/></svg></button>
+      <button type="button" class="btn rb" style="width:66px;height:66px" aria-label="Very me"><svg class="ico" viewBox="0 0 24 24" style="width:28px;height:28px;fill:currentColor;stroke-width:2"><use href="#i-heart"/></svg></button>
+    </div>
+    <p style="position:absolute;left:0;right:0;top:766px;text-align:center;font:600 13px var(--body);color:var(--ink-2)">Left to skip &middot; right if it's you</p>
+    <i class="hi"></i>
+  </div></div></div>
+</figure>
+
+<!-- ================= 2. STARTER CLOSET ================= -->
+<figure class="frame">
+  <h2><span>02</span>Starter closet picker</h2>
+  <div class="holder"><div class="device"><div class="phone">
+    <div class="sb"><b>9:41</b><i class="isl"></i><svg width="54" height="12" viewBox="0 0 54 12" fill="currentColor" aria-hidden="true"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/><rect x="27" y=".5" width="23" height="11" rx="3.5" fill="none" stroke="currentColor" opacity=".45"/><rect x="29" y="2.5" width="17" height="7" rx="2"/><rect x="51" y="4" width="2" height="4" rx="1" opacity=".45"/></svg></div>
+
+    <div style="position:absolute;left:20px;right:20px;top:60px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <button type="button" class="btn alt rb" style="width:40px;height:40px;border-width:2px;box-shadow:0 3px 0 var(--edge)" aria-label="Back"><svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><use href="#i-back"/></svg></button>
+        <span style="font:700 13px var(--body);color:var(--ink-2)">Step 2 of 3</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-top:16px">
+        <h3 class="d" style="font-size:31px">What's already in your closet?</h3>
+        <span class="pill" style="background:var(--accent);color:#fff;height:32px;font-size:14px;border:2px solid var(--edge);margin-bottom:2px">8 picked</span>
+      </div>
+      <p style="font-size:14.5px;line-height:1.35;color:var(--ink-2);margin-top:8px">Outfits in under 60 seconds. Swap in your own photos later.</p>
+    </div>
+
+    <div class="grid3">
+      <div class="tile sel" style="background:var(--sky)"><i class="chk"><svg class="ico" viewBox="0 0 24 24"><use href="#i-check"/></svg></i><svg class="st" viewBox="0 0 100 100" style="--c:#F7F6F2;--r:-4deg"><use href="#g-shirt"/></svg><span>White oxford shirt</span></div>
+      <div class="tile sel" style="background:var(--butter)"><i class="chk"><svg class="ico" viewBox="0 0 24 24"><use href="#i-check"/></svg></i><svg class="st" viewBox="0 0 100 100" style="--c:#22325E;--d:rgba(255,255,255,.35);--r:3deg"><use href="#g-trousers"/></svg><span>Navy chinos</span></div>
+      <div class="tile sel" style="background:var(--blush)"><i class="chk"><svg class="ico" viewBox="0 0 24 24"><use href="#i-check"/></svg></i><svg class="st" viewBox="0 0 100 100" style="--c:#A3A8AF;--r:-3deg"><use href="#g-knit"/></svg><span>Grey knit</span></div>
+      <div class="tile sel" style="background:var(--sage)"><i class="chk"><svg class="ico" viewBox="0 0 24 24"><use href="#i-check"/></svg></i><svg class="st" viewBox="0 0 100 100" style="--c:#F4F4F0;--r:-6deg;top:-2%"><use href="#g-sneaker"/></svg><span>White sneakers</span></div>
+      <div class="tile sel" style="background:var(--sky)"><i class="chk"><svg class="ico" viewBox="0 0 24 24"><use href="#i-check"/></svg></i><svg class="st" viewBox="0 0 100 100" style="--c:#6E4124;--d:rgba(255,255,255,.35);--r:5deg;top:-2%"><use href="#g-loafer"/></svg><span>Brown loafers</span></div>
+      <div class="tile sel" style="background:var(--camel)"><i class="chk"><svg class="ico" viewBox="0 0 24 24"><use href="#i-check"/></svg></i><svg class="st" viewBox="0 0 100 100" style="--c:#1F2B55;--d:rgba(255,255,255,.35);--r:-3deg"><use href="#g-blazer"/></svg><span>Navy blazer</span></div>
+      <div class="tile sel" style="background:var(--cobalt)"><i class="chk"><svg class="ico" viewBox="0 0 24 24"><use href="#i-check"/></svg></i><svg class="st" viewBox="0 0 100 100" style="--c:#C8904F;--r:4deg"><use href="#g-coat"/></svg><span style="color:#fff">Camel coat</span></div>
+      <div class="tile"><i class="add"><svg class="ico" viewBox="0 0 24 24"><use href="#i-plus"/></svg></i><svg class="st" viewBox="0 0 100 100" style="--c:#1F2024;--d:rgba(255,255,255,.3)"><use href="#g-trousers"/></svg><span>Black trousers</span></div>
+      <div class="tile sel" style="background:var(--coral)"><i class="chk"><svg class="ico" viewBox="0 0 24 24"><use href="#i-check"/></svg></i><svg class="st" viewBox="0 0 100 100" style="--c:#5079BA;--d:rgba(255,255,255,.4);--r:-4deg"><use href="#g-jeans"/></svg><span>Blue jeans</span></div>
+      <div class="tile"><i class="add"><svg class="ico" viewBox="0 0 24 24"><use href="#i-plus"/></svg></i><svg class="st" viewBox="0 0 100 100" style="--c:#1F2024;--d:rgba(255,255,255,.3)"><use href="#g-dress"/></svg><span>Black midi dress</span></div>
+      <div class="tile"><i class="add"><svg class="ico" viewBox="0 0 24 24"><use href="#i-plus"/></svg></i><svg class="st" viewBox="0 0 100 100" style="--c:#5A3520;--d:rgba(255,255,255,.4);--r:-8deg;top:-4%"><use href="#g-belt"/></svg><span>Brown belt</span></div>
+      <div class="tile"><i class="add"><svg class="ico" viewBox="0 0 24 24"><use href="#i-plus"/></svg></i><svg class="st" viewBox="0 0 100 100" style="--c:#C7CCD3;--r:10deg;left:30%;width:40%;top:6%"><use href="#g-watch"/></svg><span>Steel watch</span></div>
+    </div>
+
+    <div style="position:absolute;left:0;right:0;bottom:0;padding:14px 20px 28px;background:var(--surface);border-top:2px solid var(--line);display:flex;flex-direction:column;gap:10px">
+      <button type="button" class="btn">Build my outfits<svg class="ico" viewBox="0 0 24 24"><use href="#i-arrow"/></svg></button>
+      <p style="text-align:center;font:600 12.5px var(--body);color:var(--ink-2)">8 basics make 40+ work outfits</p>
+    </div>
+    <i class="hi"></i>
+  </div></div></div>
+</figure>
+
+<!-- ================= 3. TODAY ================= -->
+<figure class="frame">
+  <h2><span>03</span>Today (hero)</h2>
+  <div class="holder"><div class="device"><div class="phone">
+    <div class="blk" style="left:0;right:0;top:0;height:420px;background:var(--camel)"></div>
+    <div class="sb on-block"><b>9:41</b><i class="isl"></i><svg width="54" height="12" viewBox="0 0 54 12" fill="currentColor" aria-hidden="true"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/><rect x="27" y=".5" width="23" height="11" rx="3.5" fill="none" stroke="currentColor" opacity=".45"/><rect x="29" y="2.5" width="17" height="7" rx="2"/><rect x="51" y="4" width="2" height="4" rx="1" opacity=".45"/></svg></div>
+
+    <div class="on-block" style="position:absolute;left:20px;right:20px;top:60px;display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <p style="font:700 14px var(--body)">Monday, 9 Nov</p>
+        <h3 class="d" style="font-size:44px;margin-top:4px">Today's<br>three</h3>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;margin-top:2px">
+        <span class="chip" style="height:34px;padding:0 6px 0 10px;background:rgba(255,255,255,.55);border-color:#15171C;color:#15171C" aria-label="Weather-aware outfits, Pro feature"><svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><use href="#i-cloud"/></svg><span style="color:rgba(21,23,28,.45)">--&deg;</span><span class="pill" style="height:22px;background:#15171C;color:var(--pop);padding:0 7px;gap:3px"><svg class="ico" viewBox="0 0 24 24" style="width:12px;height:12px;stroke-width:3"><use href="#i-lock"/></svg>PRO</span></span>
+        <button type="button" class="btn alt rb" style="width:40px;height:40px;border-width:2px;box-shadow:0 3px 0 var(--edge)" aria-label="Regenerate outfits"><svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><use href="#i-refresh"/></svg></button>
+      </div>
+    </div>
+
+    <div style="position:absolute;left:20px;right:-40px;top:176px;display:flex;gap:8px;overflow:hidden">
+      <span class="chip on">Work</span><span class="chip">Friends</span><span class="chip">Date</span><span class="chip">Event</span><span class="chip">Casual</span>
+    </div>
+
+    <div class="stack">
+      <div class="cc" style="top:0;left:28px;right:28px;height:200px;background:var(--coral);color:#15171C">
+        <div class="ph"><b style="background:rgba(0,0,0,.14)">03</b><em>Blazer over denim: sharp at 3, easy after</em></div>
+      </div>
+      <div class="cc" style="top:36px;left:14px;right:14px;height:200px;background:var(--cobalt);color:#fff">
+        <div class="ph"><b>02</b><em>Grey knit + black trousers for a desk-heavy day</em></div>
+      </div>
+      <div class="cc" style="top:72px;height:372px">
+        <div style="height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 14px">
+          <span class="no">No. 01</span>
+          <span style="font:700 12.5px var(--body);color:var(--ink-2)">1 of 3 &middot; flick for next</span>
+        </div>
+        <div class="fl" style="height:214px;background:var(--camel);border-top:2.5px solid var(--edge);border-bottom:2.5px solid var(--edge)">
+          <div class="blk" style="right:0;top:0;bottom:0;width:40%;background:var(--navy)"></div>
+          <svg class="st" viewBox="0 0 100 100" style="left:2%;top:3%;width:40%;--c:#F7F6F2;--r:-7deg"><use href="#g-shirt"/></svg>
+          <svg class="st" viewBox="0 0 100 100" style="left:29%;top:8%;width:37%;--c:#22325E;--d:rgba(255,255,255,.35);--r:4deg"><use href="#g-trousers"/></svg>
+          <svg class="st" viewBox="0 0 100 100" style="left:59%;top:2%;width:41%;--c:#C8904F;--r:5deg"><use href="#g-coat"/></svg>
+          <svg class="st" viewBox="0 0 100 100" style="left:3%;top:60%;width:30%;--c:#6E4124;--d:rgba(255,255,255,.35);--r:-8deg"><use href="#g-loafer"/></svg>
+          <svg class="st" viewBox="0 0 100 100" style="left:45%;top:66%;width:13%;--c:#C7CCD3;--r:18deg"><use href="#g-watch"/></svg>
+        </div>
+        <div style="padding:12px 16px 0">
+          <div class="d" style="font-size:25px">The Client Meeting</div>
+          <p style="font-size:14px;line-height:1.35;color:var(--ink-2);margin-top:6px">Navy + camel reads sharp for your 10:00 client meeting.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="position:absolute;left:20px;right:20px;top:684px;display:flex;gap:10px;align-items:center">
+      <button type="button" class="btn alt rb" aria-label="Dislike"><svg class="ico" viewBox="0 0 24 24" style="transform:rotate(180deg)"><use href="#i-up"/></svg></button>
+      <button type="button" class="btn alt rb" aria-label="Like"><svg class="ico" viewBox="0 0 24 24"><use href="#i-up"/></svg></button>
+      <button type="button" class="btn pop rb" aria-label="Save"><svg class="ico" viewBox="0 0 24 24"><use href="#i-bookmark"/></svg></button>
+      <button type="button" class="btn" style="flex:1;height:52px">Wear today</button>
+    </div>
+
+    <nav class="tabbar">
+      <a class="on"><i class="tbi"><svg class="ico" viewBox="0 0 24 24"><use href="#i-sun"/></svg></i>Today</a>
+      <a><i class="tbi"><svg class="ico" viewBox="0 0 24 24"><use href="#i-hanger"/></svg></i>Closet</a>
+      <a><i class="tbi"><svg class="ico" viewBox="0 0 24 24"><use href="#i-bookmark"/></svg></i>Saved</a>
+      <a><i class="tbi"><svg class="ico" viewBox="0 0 24 24"><use href="#i-user"/></svg></i>You</a>
+    </nav>
+    <i class="hi"></i>
+  </div></div></div>
+</figure>
+
+<!-- ================= 4. CLOSET + QUEUE ================= -->
+<figure class="frame">
+  <h2><span>04</span>Closet + approve queue</h2>
+  <div class="holder"><div class="device"><div class="phone">
+    <div class="sb"><b>9:41</b><i class="isl"></i><svg width="54" height="12" viewBox="0 0 54 12" fill="currentColor" aria-hidden="true"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/><rect x="27" y=".5" width="23" height="11" rx="3.5" fill="none" stroke="currentColor" opacity=".45"/><rect x="29" y="2.5" width="17" height="7" rx="2"/><rect x="51" y="4" width="2" height="4" rx="1" opacity=".45"/></svg></div>
+
+    <div style="position:absolute;left:20px;right:20px;top:56px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end">
+        <div>
+          <p style="font:700 13px var(--body);color:var(--ink-2)">Your wardrobe</p>
+          <h3 class="d" style="font-size:42px;margin-top:2px">Closet</h3>
+        </div>
+        <div style="text-align:right">
+          <div class="d" style="font-size:40px">23<span style="color:var(--ink-2);font-size:24px;font-weight:700"> / 50</span></div>
+          <p style="font:600 12px var(--body);color:var(--ink-2);margin-top:3px">Free plan items</p>
+        </div>
+      </div>
+      <div class="meter" aria-label="23 of 50 items"><i></i></div>
+
+      <div class="desk">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span class="d" style="font-size:19px">Review desk</span>
+          <span class="pill" style="background:var(--pop);color:#15171C;border:2px solid var(--edge)">12 left to review</span>
+        </div>
+        <div style="display:flex;gap:12px">
+          <div class="cutout">
+            <div class="blk" style="left:7px;right:7px;top:7px;bottom:7px;border:2px dashed rgba(21,23,28,.35);border-radius:10px"></div>
+            <svg class="st" viewBox="0 0 100 100" style="left:8%;top:4%;width:84%;--c:#F7F6F2;--r:-4deg"><use href="#g-shirt"/></svg>
+            <span class="pill" style="position:absolute;left:6px;bottom:6px;height:20px;font-size:10px;background:#FFFFFF;color:#15171C">IMG_4021</span>
+          </div>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px">
+            <p style="font:800 19px/1.05 var(--display);letter-spacing:-.01em">White oxford shirt</p>
+            <div style="display:flex;flex-wrap:wrap;gap:5px">
+              <span class="tag">Shirt</span><span class="tag">White</span><span class="tag">Cotton</span>
+              <span class="tag">Formality <b>4</b></span><span class="tag">Warmth <b>2</b></span><span class="tag" style="background:var(--accent);color:#FFFFFF">Work</span>
+            </div>
+            <p style="font:600 12px/1.25 var(--body);color:var(--ink-2)">Tagged in 0.8 s. Is this yours?</p>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button type="button" class="btn" style="flex:1.3;height:48px;font-size:16px"><svg class="ico" viewBox="0 0 24 24"><use href="#i-check"/></svg>Mine</button>
+          <button type="button" class="btn alt" style="flex:1;height:48px;padding:0 10px;font-size:16px"><svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><use href="#i-x"/></svg>Not mine</button>
+          <button type="button" class="btn alt rb" style="width:48px;height:48px;border-radius:16px" aria-label="Edit tags"><svg class="ico" viewBox="0 0 24 24"><use href="#i-pencil"/></svg></button>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-bottom:6px;border-bottom:2.5px solid var(--edge)">
+        <span class="d" style="font-size:19px">By category</span>
+        <button type="button" style="display:flex;align-items:center;gap:5px;font:800 13px var(--body);color:var(--accent)"><svg class="ico" viewBox="0 0 24 24" style="width:17px;height:17px"><use href="#i-camera"/></svg>Add photos</button>
+      </div>
+        <div class="cat"><div class="n">Tops<small>9 items</small></div><div class="minis"><div><svg class="st" viewBox="0 0 100 100" style="--c:#F7F6F2"><use href="#g-shirt"/></svg></div><div><svg class="st" viewBox="0 0 100 100" style="--c:#BCD0EA"><use href="#g-shirt"/></svg></div><div><svg class="st" viewBox="0 0 100 100" style="--c:#A3A8AF"><use href="#g-knit"/></svg></div><div><svg class="st" viewBox="0 0 100 100" style="--c:#2C3E6B;--d:rgba(255,255,255,.35)"><use href="#g-knit"/></svg></div><div class="more">+5</div></div></div>
+        <div class="cat"><div class="n">Bottoms<small>6 items</small></div><div class="minis"><div><svg class="st" viewBox="0 0 100 100" style="--c:#22325E;--d:rgba(255,255,255,.35)"><use href="#g-trousers"/></svg></div><div><svg class="st" viewBox="0 0 100 100" style="--c:#1F2024;--d:rgba(255,255,255,.35)"><use href="#g-trousers"/></svg></div><div><svg class="st" viewBox="0 0 100 100" style="--c:#5079BA;--d:rgba(255,255,255,.35)"><use href="#g-jeans"/></svg></div><div><svg class="st" viewBox="0 0 100 100" style="--c:#8A8F98"><use href="#g-trousers"/></svg></div><div class="more">+2</div></div></div>
+        <div class="cat"><div class="n">Layers<small>4 items</small></div><div class="minis"><div><svg class="st" viewBox="0 0 100 100" style="--c:#1F2B55;--d:rgba(255,255,255,.35)"><use href="#g-blazer"/></svg></div><div><svg class="st" viewBox="0 0 100 100" style="--c:#C8904F"><use href="#g-coat"/></svg></div><div><svg class="st" viewBox="0 0 100 100" style="--c:#1F2024;--d:rgba(255,255,255,.35)"><use href="#g-dress"/></svg></div><div><svg class="st" viewBox="0 0 100 100" style="--c:#5F6B4E;--d:rgba(255,255,255,.35)"><use href="#g-coat"/></svg></div></div></div>
+        <div class="cat"><div class="n">Shoes<small>4 items</small></div><div class="minis"><div><svg class="st" viewBox="0 0 100 100" style="--c:#F4F4F0;left:6%;top:-4%;width:88%"><use href="#g-sneaker"/></svg></div><div><svg class="st" viewBox="0 0 100 100" style="--c:#6E4124;--d:rgba(255,255,255,.35);left:6%;top:-4%;width:88%"><use href="#g-loafer"/></svg></div><div><svg class="st" viewBox="0 0 100 100" style="--c:#1F2024;--d:rgba(255,255,255,.35);left:6%;top:-4%;width:88%"><use href="#g-loafer"/></svg></div><div><svg class="st" viewBox="0 0 100 100" style="--c:#22325E;--d:rgba(255,255,255,.35);left:6%;top:-4%;width:88%"><use href="#g-sneaker"/></svg></div></div></div>
+    </div>
+
+    <nav class="tabbar">
+      <a><i class="tbi"><svg class="ico" viewBox="0 0 24 24"><use href="#i-sun"/></svg></i>Today</a>
+      <a class="on"><i class="tbi"><svg class="ico" viewBox="0 0 24 24"><use href="#i-hanger"/></svg></i>Closet</a>
+      <a><i class="tbi"><svg class="ico" viewBox="0 0 24 24"><use href="#i-bookmark"/></svg></i>Saved</a>
+      <a><i class="tbi"><svg class="ico" viewBox="0 0 24 24"><use href="#i-user"/></svg></i>You</a>
+    </nav>
+    <i class="hi"></i>
+  </div></div></div>
+</figure>
+
+<!-- ================= 5. PAYWALL ================= -->
+<figure class="frame">
+  <h2><span>05</span>Paywall after first outfits</h2>
+  <div class="holder"><div class="device"><div class="phone">
+    <div class="blk" style="left:0;right:0;top:0;height:250px;background:var(--butter)"></div>
+    <div class="sb on-block"><b>9:41</b><i class="isl"></i><svg width="54" height="12" viewBox="0 0 54 12" fill="currentColor" aria-hidden="true"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/><rect x="27" y=".5" width="23" height="11" rx="3.5" fill="none" stroke="currentColor" opacity=".45"/><rect x="29" y="2.5" width="17" height="7" rx="2"/><rect x="51" y="4" width="2" height="4" rx="1" opacity=".45"/></svg></div>
+    <button type="button" class="rb" style="position:absolute;left:18px;top:58px;width:36px;height:36px;border-radius:50%;background:rgba(21,23,28,.1);display:grid;place-items:center;color:#15171C;z-index:5" aria-label="Maybe later"><svg class="ico" viewBox="0 0 24 24" style="width:16px;height:16px;stroke-width:2.8"><use href="#i-x"/></svg></button>
+    <span class="pill" style="position:absolute;right:20px;top:64px;background:#15171C;color:var(--pop);z-index:5">Ready in 9 s</span>
+
+    <div class="float" style="position:absolute;left:0;right:0;top:88px;height:156px">
+      <div class="mini" style="left:50px;top:12px;transform:rotate(-10deg);background:var(--coral)">
+        <svg class="st" viewBox="0 0 100 100" style="left:0%;top:4%;width:60%;--c:#1F2B55;--d:rgba(255,255,255,.35);--r:-5deg"><use href="#g-blazer"/></svg>
+        <svg class="st" viewBox="0 0 100 100" style="left:46%;top:16%;width:52%;--c:#5079BA;--d:rgba(255,255,255,.4);--r:4deg"><use href="#g-jeans"/></svg>
+        <svg class="st" viewBox="0 0 100 100" style="left:6%;top:62%;width:48%;--c:#6E4124;--d:rgba(255,255,255,.35);--r:-8deg"><use href="#g-loafer"/></svg>
+      </div>
+      <div class="mini" style="left:230px;top:12px;transform:rotate(10deg);background:var(--cobalt)">
+        <svg class="st" viewBox="0 0 100 100" style="left:2%;top:4%;width:60%;--c:#A3A8AF;--r:-4deg"><use href="#g-knit"/></svg>
+        <svg class="st" viewBox="0 0 100 100" style="left:46%;top:18%;width:52%;--c:#1F2024;--d:rgba(255,255,255,.3);--r:5deg"><use href="#g-trousers"/></svg>
+        <svg class="st" viewBox="0 0 100 100" style="left:4%;top:62%;width:50%;--c:#F4F4F0;--r:-6deg"><use href="#g-sneaker"/></svg>
+      </div>
+      <div class="mini" style="left:140px;top:0;background:var(--camel);z-index:2">
+        <div class="blk" style="right:0;top:0;bottom:0;width:42%;background:var(--navy)"></div>
+        <svg class="st" viewBox="0 0 100 100" style="left:0%;top:4%;width:56%;--c:#F7F6F2;--r:-6deg"><use href="#g-shirt"/></svg>
+        <svg class="st" viewBox="0 0 100 100" style="left:42%;top:6%;width:58%;--c:#C8904F;--r:5deg"><use href="#g-coat"/></svg>
+        <svg class="st" viewBox="0 0 100 100" style="left:6%;top:62%;width:46%;--c:#6E4124;--d:rgba(255,255,255,.35);--r:-8deg"><use href="#g-loafer"/></svg>
+      </div>
+    </div>
+
+    <div style="position:absolute;left:20px;right:20px;top:266px;bottom:34px;display:flex;flex-direction:column;gap:14px">
+      <div>
+      <h3 class="d" style="font-size:28px">Done in 9 seconds. Now every morning.</h3>
+      <div style="display:flex;flex-direction:column;gap:5px;margin-top:12px">
+        <div class="ben"><i class="bi" style="background:var(--sky)"><svg class="ico" viewBox="0 0 24 24"><use href="#i-infinity"/></svg></i><p><b>Unlimited closet</b> <span>&middot; past 50 items</span></p></div>
+        <div class="ben"><i class="bi" style="background:var(--sage)"><svg class="ico" viewBox="0 0 24 24"><use href="#i-scan"/></svg></i><p><b>Mirror-selfie auto-scan</b> <span>&middot; one photo</span></p></div>
+        <div class="ben"><i class="bi" style="background:var(--butter)"><svg class="ico" viewBox="0 0 24 24"><use href="#i-cloud"/></svg></i><p><b>Weather-aware outfits</b> <span>&middot; rain-ready</span></p></div>
+        <div class="ben"><i class="bi" style="background:var(--blush)"><svg class="ico" viewBox="0 0 24 24"><use href="#i-gauge"/></svg></i><p><b>Outfit score</b> <span>&middot; before you leave</span></p></div>
+        <div class="ben"><i class="bi" style="background:var(--camel)"><svg class="ico" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></i><p><b>Unlimited regenerations</b> <span>&middot; on demand</span></p></div>
+      </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
+      <div class="plan sel">
+        <span class="best">BEST VALUE</span>
+        <i class="radio"></i>
+        <div style="flex:1"><b style="font-size:16px">Annual</b><p style="font-size:12.5px;color:var(--ink-2);margin-top:2px">7-day free trial, then $29.99/yr</p></div>
+        <div style="text-align:right"><b class="d" style="font-size:22px;letter-spacing:-.02em">$2.50</b><p style="font-size:11.5px;color:var(--ink-2)">per month</p></div>
+      </div>
+      <div class="plan">
+        <i class="radio"></i>
+        <div style="flex:1"><b style="font-size:16px">Monthly</b><p style="font-size:12.5px;color:var(--ink-2);margin-top:2px">Billed monthly, no trial</p></div>
+        <div style="text-align:right"><b class="d" style="font-size:22px;letter-spacing:-.02em">$4.99</b><p style="font-size:11.5px;color:var(--ink-2)">per month</p></div>
+      </div>
+      </div>
+
+      <div style="margin-top:auto">
+      <button type="button" class="btn" style="width:100%">Start 7-day free trial</button>
+      <div style="display:flex;justify-content:center;gap:16px;margin-top:12px;font:700 12.5px var(--body)">
+        <a style="color:var(--ink)">Restore Purchases</a><a style="color:var(--ink-2)">Terms</a><a style="color:var(--ink-2)">Privacy</a>
+      </div>
+      <p style="font-size:10.5px;line-height:1.35;color:var(--ink-2);text-align:center;margin-top:6px">Free for 7 days, then $29.99/year. Auto-renews unless cancelled at least 24 hours before the period ends. Cancel anytime in Settings.</p>
+      </div>
+    </div>
+    <i class="hi"></i>
+  </div></div></div>
+</figure>
+
+</main>
+
+</body>
+</html>

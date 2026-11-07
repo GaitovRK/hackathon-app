@@ -1,0 +1,46 @@
+# First run: welcome → swipe deck → questions → starter closet → Today shows 3 outfits → mark one worn.
+# Needs the dev build and a running server (not run by agents).
+appId: com.gaitov.hackathonapp
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-start"
+    timeout: 15000
+- tapOn:
+    id: "onboarding-start"
+- repeat:
+    times: 20
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: "swipe-like"
+          commands:
+            - tapOn:
+                id: "swipe-like"
+- extendedWaitUntil:
+    visible:
+      id: "q-next"
+    timeout: 10000
+- tapOn:
+    id: "q-dresscode-smart_casual"
+- tapOn:
+    id: "q-next"
+- extendedWaitUntil:
+    visible:
+      id: "build-outfits"
+    timeout: 15000
+- tapOn:
+    id: "build-outfits"
+- extendedWaitUntil:
+    visible:
+      id: "outfit-stack"
+    timeout: 30000
+- assertVisible:
+    id: "wear-.*"
+- tapOn:
+    id: "wear-.*"
+    index: 0
+- assertVisible: "Worn ✓"

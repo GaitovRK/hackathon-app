@@ -1,7 +1,24 @@
 import { createApi, fetchBaseQuery, type BaseQueryFn, type FetchArgs, type FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
 import { API_URL } from "@/services/api/config";
 import { notifyQuotaExceeded } from "@/services/api/quotaHandler";
-import type { AuthResponse, CreateGenerationRequest, Generation, MeResponse } from "@/services/api/types";
+import {
+  PAYWALL_CODES,
+  type AuthResponse,
+  type CreateGenerationRequest,
+  type FeedbackValue,
+  type Generation,
+  type Item,
+  type ItemPatch,
+  type MeResponse,
+  type Outfit,
+  type PaywallCode,
+  type StarterCatalogResponse,
+  type StyleProfile,
+  type StyleProfileUpdate,
+  type StyleSwipe,
+  type TodayRequest,
+  type TodayResponse,
+} from "@/services/api/types";
 import { tokenStorage } from "@/services/session/tokenStorage";
 import { sessionReady } from "./sessionSlice";
 
@@ -18,15 +35,18 @@ const rawBaseQuery = fetchBaseQuery({
 
 const urlOf = (args: string | FetchArgs) => (typeof args === "string" ? args : args.url).replace(/^\/+/, "");
 
-const isQuotaExceeded = (error: FetchBaseQueryError | undefined) =>
-  error?.status === 402 && (error.data as { code?: unknown } | undefined)?.code === "QUOTA_EXCEEDED";
+const paywallCodeOf = (error: FetchBaseQueryError | undefined): PaywallCode | null => {
+  if (error?.status !== 402) return null;
+  const code = (error.data as { code?: unknown } | undefined)?.code;
+  return typeof code === "string" && PAYWALL_CODES.has(code) ? (code as PaywallCode) : null;
+};
 
 /** Concurrent 401s share one re-auth request. */
 let reauth: Promise<boolean> | null = null;
 
 /**
  * - 401 → sign in anonymously again (new JWT), then retry the request once.
- * - 402 `QUOTA_EXCEEDED` → open the paywall (handler registered by the root layout).
+ * - 402 with a paywall code (`QUOTA_EXCEEDED`, `ITEM_LIMIT`, `REFRESH_LIMIT`) → open the paywall (handler registered by the root layout).
  */
 export const baseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (args, api, extra) => {
   let result = await rawBaseQuery(args, api, extra);
@@ -45,32 +65,82 @@ export const baseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryE
     if (await reauth) result = await rawBaseQuery(args, api, extra);
   }
 
-  if (isQuotaExceeded(result.error)) notifyQuotaExceeded();
+  const code = paywallCodeOf(result.error);
+  if (code) notifyQuotaExceeded(code);
   return result;
 };
 
 export const api = createApi({
   reducerPath: "api",
   baseQuery,
-  tagTypes: ["Me", "Generation"],
+  tagTypes: ["Me", "Generation", "Profile", "Item", "Outfit"],
   endpoints: (build) => ({
     authAnonymous: build.mutation<AuthResponse, void>({
       query: () => ({ url: AUTH_URL, method: "POST" }),
     }),
     me: build.query<MeResponse, void>({ query: () => "me", providesTags: ["Me"] }),
+
+    // Generations (fal; reused for garment cutouts later)
     createGeneration: build.mutation<Generation, CreateGenerationRequest>({
       query: (body) => ({ url: "generations", method: "POST", body }),
       invalidatesTags: ["Me", { type: "Generation", id: "LIST" }],
     }),
-    /** Poll with `pollingInterval` until `status` is done/failed (see `isFinished`). */
     getGeneration: build.query<Generation, string>({
       query: (id) => `generations/${id}`,
       providesTags: (_r, _e, id) => [{ type: "Generation", id }],
     }),
-    listGenerations: build.query<Generation[], void>({
-      query: () => "generations",
-      providesTags: [{ type: "Generation", id: "LIST" }],
+
+    // Style profile + onboarding
+    styleProfile: build.query<StyleProfile, void>({ query: () => "style-profile", providesTags: ["Profile"] }),
+    updateStyleProfile: build.mutation<StyleProfile, StyleProfileUpdate>({
+      query: (body) => ({ url: "style-profile", method: "PUT", body }),
+      invalidatesTags: ["Profile", "Outfit"],
     }),
+    addSwipes: build.mutation<StyleProfile, StyleSwipe[]>({
+      query: (swipes) => ({ url: "style-profile/swipes", method: "POST", body: { swipes } }),
+      invalidatesTags: ["Profile"],
+    }),
+    starterCatalog: build.query<StarterCatalogResponse, void>({ query: () => "starter-catalog" }),
+
+    // Closet
+    items: build.query<Item[], void>({
+      query: () => "items",
+      providesTags: (result) => [{ type: "Item", id: "LIST" }, ...(result ?? []).map((i) => ({ type: "Item" as const, id: i.id }))],
+    }),
+    addStarterItems: build.mutation<Item[], string[]>({
+      query: (starterKeys) => ({ url: "items/starter", method: "POST", body: { starterKeys } }),
+      invalidatesTags: ["Me", "Outfit", { type: "Item", id: "LIST" }],
+    }),
+    patchItem: build.mutation<Item, { id: string; patch: ItemPatch }>({
+      query: ({ id, patch }) => ({ url: `items/${id}`, method: "PATCH", body: patch }),
+      invalidatesTags: (_r, _e, { id }) => ["Outfit", { type: "Item", id }, { type: "Item", id: "LIST" }],
+    }),
+    archiveItem: build.mutation<Item, string>({
+      query: (id) => ({ url: `items/${id}`, method: "DELETE" }),
+      invalidatesTags: ["Me", "Outfit", { type: "Item", id: "LIST" }],
+    }),
+
+    // Outfits
+    today: build.query<TodayResponse, TodayRequest>({
+      query: ({ occasion, date, refresh }) => ({ url: "outfits/today", params: { occasion, date, ...(refresh ? { refresh: 1 } : {}) } }),
+      providesTags: (_r, _e, { occasion, date }) => [{ type: "Outfit", id: `${date}:${occasion}` }, "Outfit"],
+    }),
+    refreshToday: build.mutation<TodayResponse, TodayRequest>({
+      query: ({ occasion, date }) => ({ url: "outfits/today", params: { occasion, date, refresh: 1 } }),
+      invalidatesTags: (_r, _e, { occasion, date }) => [{ type: "Outfit", id: `${date}:${occasion}` }],
+    }),
+    wearOutfit: build.mutation<Outfit, { id: string; date: string }>({
+      query: ({ id, date }) => ({ url: `outfits/${id}/wear`, method: "POST", body: { date } }),
+      invalidatesTags: ["Outfit"],
+    }),
+    saveOutfit: build.mutation<Outfit, string>({
+      query: (id) => ({ url: `outfits/${id}/save`, method: "POST" }),
+      invalidatesTags: ["Outfit"],
+    }),
+    outfitFeedback: build.mutation<{ ok: true }, { id: string; value: FeedbackValue }>({
+      query: ({ id, value }) => ({ url: `outfits/${id}/feedback`, method: "POST", body: { value } }),
+    }),
+    savedOutfits: build.query<Outfit[], void>({ query: () => "outfits/saved", providesTags: ["Outfit"] }),
   }),
 });
 
@@ -79,5 +149,18 @@ export const {
   useMeQuery,
   useCreateGenerationMutation,
   useGetGenerationQuery,
-  useListGenerationsQuery,
+  useStyleProfileQuery,
+  useUpdateStyleProfileMutation,
+  useAddSwipesMutation,
+  useStarterCatalogQuery,
+  useItemsQuery,
+  useAddStarterItemsMutation,
+  usePatchItemMutation,
+  useArchiveItemMutation,
+  useTodayQuery,
+  useRefreshTodayMutation,
+  useWearOutfitMutation,
+  useSaveOutfitMutation,
+  useOutfitFeedbackMutation,
+  useSavedOutfitsQuery,
 } = api;
