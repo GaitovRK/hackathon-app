@@ -1,0 +1,46 @@
+import { z } from 'zod';
+
+export interface ModelDef {
+  endpoint: string;
+  input: z.ZodType<Record<string, unknown>>;
+}
+
+const IMAGE_SIZES = [
+  'square_hd',
+  'square',
+  'portrait_4_3',
+  'portrait_16_9',
+  'landscape_4_3',
+  'landscape_16_9',
+] as const;
+
+export const MODELS: Record<string, ModelDef> = {
+  'flux-schnell': {
+    endpoint: 'fal-ai/flux/schnell',
+    input: z
+      .object({
+        prompt: z.string().min(1).max(500),
+        image_size: z.enum(IMAGE_SIZES).optional(),
+      })
+      .strict(),
+  },
+};
+
+export type ParseModelResult =
+  | { ok: true; modelId: string; endpoint: string; input: Record<string, unknown> }
+  | { ok: false; code: 'UNKNOWN_MODEL' | 'INVALID_INPUT'; message: string };
+
+export function getModel(model: string): ModelDef | undefined {
+  return Object.prototype.hasOwnProperty.call(MODELS, model) ? MODELS[model] : undefined;
+}
+
+export function parseModelInput(model: unknown, input: unknown): ParseModelResult {
+  const def = typeof model === 'string' ? getModel(model) : undefined;
+  if (!def) return { ok: false, code: 'UNKNOWN_MODEL', message: 'Unknown model' };
+  const parsed = def.input.safeParse(input);
+  if (!parsed.success) {
+    const msg = parsed.error.issues.map((i) => `${i.path.join('.') || 'input'}: ${i.message}`).join('; ');
+    return { ok: false, code: 'INVALID_INPUT', message: msg };
+  }
+  return { ok: true, modelId: model as string, endpoint: def.endpoint, input: parsed.data };
+}
