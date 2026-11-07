@@ -1,0 +1,20 @@
+# Happy path: prompt → Generate → result card. Needs the dev build and a running server (not run by agents).
+appId: com.gaitov.hackathonapp
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "prompt-input"
+    timeout: 15000
+- tapOn:
+    id: "prompt-input"
+- inputText: "A neon fox in the rain"
+- hideKeyboard
+- tapOn:
+    id: "generate-button"
+- extendedWaitUntil:
+    visible: "Done"
+    timeout: 60000
+- assertVisible:
+    id: "generation-.*"
