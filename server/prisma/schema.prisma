@@ -15,9 +15,15 @@ enum GenerationStatus {
 }
 
 model User {
-  id          String       @id @default(uuid()) @db.Uuid
-  createdAt   DateTime     @default(now())
-  generations Generation[]
+  id           String           @id @default(uuid()) @db.Uuid
+  createdAt    DateTime         @default(now())
+  generations  Generation[]
+  styleProfile StyleProfile?
+  sourcePhotos SourcePhoto[]
+  items        Item[]
+  outfits      Outfit[]
+  feedback     OutfitFeedback[]
+  wears        Wear[]
 }
 
 model Generation {
@@ -35,4 +41,239 @@ model Generation {
 
   @@index([userId])
   @@index([userId, createdAt])
+}
+
+// ---------- Closet (issue #5) ----------
+
+enum DressCode {
+  formal
+  smart_casual
+  casual
+  creative
+}
+
+enum Wardrobe {
+  menswear
+  womenswear
+  both
+}
+
+enum SourcePhotoStatus {
+  uploaded
+  processing
+  tagged
+  approved
+  failed
+}
+
+enum ItemSource {
+  starter
+  photo
+}
+
+enum ItemCategory {
+  top
+  bottom
+  dress
+  outerwear
+  shoes
+  accessory
+}
+
+enum Color {
+  white
+  black
+  grey
+  navy
+  beige
+  camel
+  brown
+  olive
+  blue
+  light_blue
+  red
+  burgundy
+  pink
+  green
+  yellow
+  orange
+  purple
+  cream
+}
+
+enum Pattern {
+  solid
+  stripe
+  check
+  print
+  texture
+}
+
+enum Season {
+  spring
+  summer
+  autumn
+  winter
+}
+
+enum Occasion {
+  work
+  friends
+  date
+  event
+  casual
+  sport
+  travel
+}
+
+enum OutfitTemplate {
+  separates
+  separates_layered
+  dress
+  dress_layered
+}
+
+enum OutfitStatus {
+  suggested
+  saved
+  worn
+}
+
+enum OutfitSlot {
+  top
+  bottom
+  dress
+  outerwear
+  shoes
+  accessory
+}
+
+enum FeedbackValue {
+  like
+  dislike
+}
+
+model StyleProfile {
+  id          String       @id @default(uuid()) @db.Uuid
+  userId      String       @unique @db.Uuid
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dressCode   DressCode    @default(smart_casual)
+  city        String?
+  wardrobe    Wardrobe     @default(both)
+  onboardedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  swipes      StyleSwipe[]
+}
+
+model StyleSwipe {
+  id        String       @id @default(uuid()) @db.Uuid
+  profileId String       @db.Uuid
+  profile   StyleProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  lookId    String
+  liked     Boolean
+  createdAt DateTime     @default(now())
+
+  @@unique([profileId, lookId])
+}
+
+model SourcePhoto {
+  id        String            @id @default(uuid()) @db.Uuid
+  userId    String            @db.Uuid
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  url       String
+  status    SourcePhotoStatus @default(uploaded)
+  error     String?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  deletedAt DateTime?
+  items     Item[]
+
+  @@index([userId, status])
+}
+
+model Item {
+  id             String       @id @default(uuid()) @db.Uuid
+  userId         String       @db.Uuid
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source         ItemSource
+  category       ItemCategory
+  subcategory    String
+  name           String
+  primaryColor   Color
+  secondaryColor Color?
+  pattern        Pattern      @default(solid)
+  material       String?
+  formality      Int
+  warmth         Int
+  seasons        Season[]
+  occasions      Occasion[]
+  imageUrl       String?
+  starterKey     String?
+  sourcePhotoId  String?      @db.Uuid
+  sourcePhoto    SourcePhoto? @relation(fields: [sourcePhotoId], references: [id], onDelete: SetNull)
+  archivedAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  outfitItems    OutfitItem[]
+
+  @@index([userId])
+  @@index([userId, category])
+}
+
+model Outfit {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @db.Uuid
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime         @db.Date
+  occasion  Occasion
+  score     Int
+  reason    String
+  template  OutfitTemplate
+  status    OutfitStatus     @default(suggested)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  items     OutfitItem[]
+  feedback  OutfitFeedback[]
+  wears     Wear[]
+
+  @@index([userId, date, occasion])
+  @@index([userId, status])
+}
+
+model OutfitItem {
+  id       String     @id @default(uuid()) @db.Uuid
+  outfitId String     @db.Uuid
+  outfit   Outfit     @relation(fields: [outfitId], references: [id], onDelete: Cascade)
+  itemId   String     @db.Uuid
+  item     Item       @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  slot     OutfitSlot
+
+  @@unique([outfitId, slot])
+  @@index([itemId])
+}
+
+model OutfitFeedback {
+  id        String        @id @default(uuid()) @db.Uuid
+  outfitId  String        @db.Uuid
+  outfit    Outfit        @relation(fields: [outfitId], references: [id], onDelete: Cascade)
+  userId    String        @db.Uuid
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  value     FeedbackValue
+  createdAt DateTime      @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model Wear {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  outfitId  String   @db.Uuid
+  outfit    Outfit   @relation(fields: [outfitId], references: [id], onDelete: Cascade)
+  wornOn    DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  @@unique([outfitId, wornOn])
+  @@index([userId, wornOn])
 }

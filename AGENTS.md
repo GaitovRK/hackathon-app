@@ -1,7 +1,7 @@
 # Hackathon App: agent guide
 
 **Event:** "From Zero to First Dollar" AI mobile-app hackathon (RevenueCat, fal, Third Room, Neon Apps; Istanbul App Week), Sat 2026-11-07. Judged on the build, creativity and monetization (RevenueCat subscriptions / paywall / IAP). fal credit: $50.
-**Concept:** TBD after the 16:10 reveal (filled by the `kickoff` skill). Until then: generic "prompt → fal image" app with a free daily quota and a `pro` subscription.
+**Concept:** AI closet, v1 job "what to wear today". The user adds photos of their clothes (starter catalog until then), the app keeps a tagged digital closet and suggests 3 complete outfits every morning as flat-lay collages, chosen the way the user would. Promise: "Stop staring at your closet. Today's outfit is ready in 10 seconds." First users: busy professionals asking "what do I wear to work?". Key metric: time-to-first-outfit (< 60 s, zero photos). Free: 50 items, today's 3 outfits, saving, 1 refresh/day. Pro ($4.99/mo, $29.99/yr with 7-day trial): unlimited items + refreshes, mirror-selfie scan, weather-aware outfits, outfit score. Full brief, scope, non-goals and glossary: `docs/PRODUCT.md`.
 
 ## Timeline (Istanbul, UTC+3) and timeboxes
 | time | what |
@@ -25,8 +25,8 @@ pnpm --dir mobile start     # Metro; open the dev client (RevenueCat needs a dev
 Root is not a pnpm workspace: `server/` and `mobile/` each have their own lockfile.
 
 ## Folder map
-- `server/` NestJS: `src/auth/` (anonymous JWT, global guard, `@Public()`), `src/fal/` (`models.ts` allowlist + queue client), `src/generations/`, `src/billing/` (RevenueCat entitlement + quota), `src/config/` (zod env), `prisma/` schema + migrations, `test/` Supertest e2e
-- `mobile/` Expo SDK 57: `src/app/` Expo Router screens · `src/components/<Group>/` (Buttons, Cards, Layout, Status) · `src/hooks/<domain>/` · `src/services/<domain>/` (api, session, purchases) · `src/store/` RTK Query + slices · `src/theme/` tokens · `src/dev/` dev previews · `messages/en.json` copy · `.maestro/` flows
+- `server/` NestJS: `src/auth/` (anonymous JWT, global guard, `@Public()`), `src/fal/` (`models.ts` allowlist + queue client), `src/generations/` (fal jobs, reused for cutouts later), `src/billing/` (RevenueCat entitlement + quota + item limit), `src/style-profile/`, `src/starter-catalog/`, `src/items/`, `src/outfits/` (`engine/` = pure, DB-free rules + scoring), `src/config/` (zod env), `prisma/` schema + migrations, `test/` Supertest e2e
+- `mobile/` Expo SDK 57: `src/app/` Expo Router screens (`onboarding/`, `(tabs)/` Today / Closet / Settings, `paywall`) · `src/components/<Group>/` (Buttons, Cards, Items, Chips, Layout, Status) · `src/content/` curated looks · `src/hooks/<domain>/` · `src/services/<domain>/` (api, session, purchases) · `src/store/` RTK Query + slices · `src/theme/` tokens (the visual design is swapped by changing tokens only) · `src/dev/` dev previews · `messages/en.json` copy · `.maestro/` flows
 - `.claude/agents/` roles · `.claude/skills/` skills · `ops/routines.md` cloud routines · `.github/` CI + issue templates
 
 ## Hard rules (every agent)
@@ -40,6 +40,9 @@ Root is not a pnpm workspace: `server/` and `mobile/` each have their own lockfi
 8. **Timeboxes win.** After 19:00 no new features; after 19:20 only the owner touches the build.
 9. **"How to see it"** on every PR: mobile → the dev preview entry + `pnpm --dir mobile start`; server → curl steps.
 10. Never run simulators/emulators, EAS builds or submits. Write Maestro flows, don't run them.
+
+## Glossary
+Item (a garment: `starter` or `photo`), starter catalog (`starterKey` basics), look (curated item set for onboarding swipes), style profile (dress code, city, wardrobe, swipes), outfit (template + slots + score + reason; `suggested` → `saved` / `worn`), wear (worn-on record), occasion, dress code, flat-lay. Definitions in `docs/PRODUCT.md`.
 
 ## Decisions (shared memory)
 Pinned issue **#2 "Decisions"** lists every product/design decision made with the owner. Every agent reads its body at the start of a run (`gh api repos/GaitovRK/hackathon-app/issues/2 --jq .body`). Never build against a decision; re-raise one only with new info. When a discussion ends in a decision, append one line (what, short why, link, time) via `gh api -X PATCH repos/GaitovRK/hackathon-app/issues/2 -f body=...` keeping the existing text.
