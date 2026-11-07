@@ -11,7 +11,7 @@ export type Generation = {
   model: string;
   input: GenerationInput;
   status: GenerationStatus;
-  imageUrl?: string | null;
+  resultUrl?: string | null;
   error?: string | null;
   createdAt: string;
 };

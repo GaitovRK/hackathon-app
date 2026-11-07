@@ -15,9 +15,9 @@ export function GenerationCard({ generation, large }: Props) {
       testID={`generation-${generation.id}`}
       style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg, padding: spacing.md, gap: spacing.sm }]}
     >
-      {generation.imageUrl ? (
+      {generation.resultUrl ? (
         <Image
-          source={{ uri: generation.imageUrl }}
+          source={{ uri: generation.resultUrl }}
           style={[large ? styles.large : styles.thumb, { borderRadius: radius.md, backgroundColor: colors.border }]}
           contentFit="cover"
           transition={200}
