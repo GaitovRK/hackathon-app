@@ -11,12 +11,12 @@ describe("GarmentCutout", () => {
     expect(starterImageFor("white-tee")).toBeDefined();
   });
 
-  it("has no photo for starter items outside the common basics", () => {
-    expect(starterImageFor("silver-watch")).toBeUndefined();
+  it("has no photo for unknown or missing keys", () => {
+    expect(starterImageFor("not-a-starter")).toBeUndefined();
     expect(starterImageFor(null)).toBeUndefined();
   });
 
   it("covers the most common basics", () => {
-    for (const key of ["white-tee", "black-tee", "blue-jeans", "white-sneakers", "white-oxford-shirt", "grey-hoodie", "black-midi-dress"]) expect(starterImageFor(key)).toBeDefined();
+    for (const key of ["white-tee", "black-tee", "blue-jeans", "white-sneakers", "white-oxford-shirt", "grey-hoodie", "black-midi-dress", "silver-watch", "black-oxfords", "floral-wrap-dress"]) expect(starterImageFor(key)).toBeDefined();
   });
 });
