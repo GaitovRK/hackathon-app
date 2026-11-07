@@ -33,9 +33,18 @@ const { FalService } = require('../src/fal/fal.service') as typeof import('../sr
 const { PrismaService } = require('../src/prisma/prisma.service') as typeof import('../src/prisma/prisma.service');
 /* eslint-enable @typescript-eslint/no-require-imports */
 
+export interface FalMock {
+  submit: jest.Mock;
+  poll: jest.Mock;
+  upload: jest.Mock;
+  run: jest.Mock;
+}
+
 export interface TestApp {
   app: NestExpressApplication;
   proUserIds: Set<string>;
+  /** The FalService stand-in: override `upload` / `run` per test; never calls fal. */
+  fal: FalMock;
   close: () => Promise<void>;
 }
 
@@ -50,10 +59,16 @@ export async function bootTestApp(): Promise<TestApp> {
     return { ok: false, status: 404, json: async () => ({}) };
   }) as unknown as typeof fetch;
 
-  const mod = await Test.createTestingModule({ imports: [AppModule] })
-    .overrideProvider(FalService)
-    .useValue({ submit: jest.fn(async () => ({ requestId: `req-${Date.now()}` })), poll: jest.fn(async () => ({ status: 'done' as const, resultUrl: 'https://cdn.example/img.png' })) })
-    .compile();
+  const fal: FalMock = {
+    submit: jest.fn(async () => ({ requestId: `req-${Date.now()}` })),
+    poll: jest.fn(async () => ({ status: 'done' as const, resultUrl: 'https://cdn.example/img.png' })),
+    upload: jest.fn(async () => 'https://fal.example/original.jpg'),
+    run: jest.fn(async (endpoint: string) => {
+      if (endpoint === 'fal-ai/birefnet/v2') return { image: { url: 'https://fal.example/cutout.png' } };
+      return { output: '{"category":"top","subcategory":"shirt","name":"Blue shirt","primaryColor":"blue","pattern":"solid","formality":3,"warmth":2,"seasons":["spring"],"occasions":["work"]}' };
+    }),
+  };
+  const mod = await Test.createTestingModule({ imports: [AppModule] }).overrideProvider(FalService).useValue(fal).compile();
   const app = mod.createNestApplication<NestExpressApplication>({ bodyParser: false });
   configureApp(app);
   await app.init();
@@ -61,6 +76,7 @@ export async function bootTestApp(): Promise<TestApp> {
   return {
     app,
     proUserIds,
+    fal,
     close: async () => {
       global.fetch = realFetch;
       await app.close();

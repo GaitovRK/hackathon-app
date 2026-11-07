@@ -1,16 +1,35 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadGatewayException, BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { Item } from '@prisma/client';
 import { z } from 'zod';
 import { QuotaService } from '../billing/quota.service';
+import { FalService } from '../fal/fal.service';
+import { getModel } from '../fal/models';
 import { PrismaService } from '../prisma/prisma.service';
 import { getStarterItem } from '../starter-catalog/catalog';
+import { COLORS, ITEM_CATEGORIES, parsePhotoTags, TAGGING_PROMPT, TAGGING_SYSTEM_PROMPT } from './photo-tags';
 
-const COLORS = ['white', 'black', 'grey', 'navy', 'beige', 'camel', 'brown', 'olive', 'blue', 'light_blue', 'red', 'burgundy', 'pink', 'green', 'yellow', 'orange', 'purple', 'cream'] as const;
+export const PHOTO_MIME_TYPES = ['image/jpeg', 'image/png', 'image/heic', 'image/webp'] as const;
+export const PHOTO_MAX_BYTES = 10 * 1024 * 1024;
+
+export interface UploadedPhoto {
+  buffer: Buffer;
+  mimetype: string;
+  size: number;
+}
+
+export interface PhotoItemResult {
+  item: Item;
+  tagged: boolean;
+}
+
+const cutoutResultSchema = z.object({ image: z.object({ url: z.string().url() }) });
+const visionResultSchema = z.object({ output: z.string() });
 
 export const addStarterSchema = z.object({ starterKeys: z.array(z.string().min(1).max(64)).min(1).max(100) });
 
 export const patchItemSchema = z
   .object({
+    category: z.enum(ITEM_CATEGORIES),
     name: z.string().trim().min(1).max(80),
     subcategory: z.string().trim().min(1).max(40),
     primaryColor: z.enum(COLORS),
@@ -26,9 +45,12 @@ export const patchItemSchema = z
 
 @Injectable()
 export class ItemsService {
+  private readonly logger = new Logger(ItemsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly quota: QuotaService,
+    private readonly fal: FalService,
   ) {}
 
   list(userId: string): Promise<Item[]> {
@@ -74,6 +96,76 @@ export class ItemsService {
       });
     }
     return this.list(userId);
+  }
+
+  /**
+   * Photo item: item-limit check → SourcePhoto → fal storage upload → background removal (birefnet) →
+   * vision auto-tag (defaults + `tagged: false` on any tagging failure) → Item (source `photo`).
+   * Cutout failure: SourcePhoto `failed` + 502 PHOTO_PROCESSING_FAILED.
+   */
+  async addFromPhoto(userId: string, photo: UploadedPhoto | undefined): Promise<PhotoItemResult> {
+    if (!photo || !(PHOTO_MIME_TYPES as readonly string[]).includes(photo.mimetype) || photo.size > PHOTO_MAX_BYTES || photo.size === 0) {
+      throw new BadRequestException({ code: 'INVALID_PHOTO', message: 'Send one jpeg, png, heic or webp photo up to 10 MB in the "photo" field' });
+    }
+    await this.quota.assertCanAddItems(userId, 1);
+
+    const sourcePhoto = await this.prisma.sourcePhoto.create({ data: { userId, url: '', status: 'uploaded' } });
+    let originalUrl: string;
+    let cutoutUrl: string;
+    try {
+      originalUrl = await this.fal.upload(photo.buffer, photo.mimetype);
+      await this.prisma.sourcePhoto.update({ where: { id: sourcePhoto.id }, data: { url: originalUrl, status: 'processing' } });
+      const cutout = getModel('birefnet-v2')!;
+      const result = await this.fal.run(cutout.endpoint, cutout.input.parse({ image_url: originalUrl, output_format: 'png' }));
+      cutoutUrl = cutoutResultSchema.parse(result).image.url;
+    } catch (e) {
+      this.logger.warn(`photo cutout failed for sourcePhoto ${sourcePhoto.id} (${(e as Error).name})`);
+      await this.prisma.sourcePhoto.update({ where: { id: sourcePhoto.id }, data: { status: 'failed', error: 'Background removal failed' } });
+      throw new BadGatewayException({ code: 'PHOTO_PROCESSING_FAILED', message: 'We could not process that photo. Try another one.' });
+    }
+
+    const { tagged, tags } = await this.tagPhoto(originalUrl, sourcePhoto.id);
+    const [item] = await this.prisma.$transaction([
+      this.prisma.item.create({
+        data: {
+          userId,
+          source: 'photo',
+          category: tags.category,
+          subcategory: tags.subcategory,
+          name: tags.name,
+          primaryColor: tags.primaryColor,
+          secondaryColor: tags.secondaryColor ?? null,
+          pattern: tags.pattern,
+          formality: tags.formality,
+          warmth: tags.warmth,
+          seasons: tags.seasons,
+          occasions: tags.occasions,
+          imageUrl: cutoutUrl,
+          sourcePhotoId: sourcePhoto.id,
+        },
+      }),
+      this.prisma.sourcePhoto.update({ where: { id: sourcePhoto.id }, data: { status: 'tagged' } }),
+    ]);
+    return { item, tagged };
+  }
+
+  private async tagPhoto(imageUrl: string, sourcePhotoId: string): Promise<ReturnType<typeof parsePhotoTags>> {
+    try {
+      const vision = getModel('vision-tagger')!;
+      const input = vision.input.parse({
+        prompt: TAGGING_PROMPT,
+        system_prompt: TAGGING_SYSTEM_PROMPT,
+        model: 'google/gemini-2.5-flash-lite',
+        image_urls: [imageUrl],
+        temperature: 0,
+        max_tokens: 400,
+      });
+      const result = await this.fal.run(vision.endpoint, input, 30_000);
+      return parsePhotoTags(visionResultSchema.parse(result).output);
+    } catch (e) {
+      this.logger.warn(`photo tagging failed for sourcePhoto ${sourcePhotoId} (${(e as Error).name})`);
+      return parsePhotoTags(null);
+    }
   }
 
   async patch(userId: string, id: string, body: unknown): Promise<Item> {
