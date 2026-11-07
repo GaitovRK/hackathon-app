@@ -69,6 +69,16 @@ describe("TodayScreen", () => {
     await waitFor(() => expect(calls.some((c) => /POST .*\/outfits\/o2\/feedback$/.test(c))).toBe(true));
   });
 
+  it("opens an outfit's flat-lay full screen and closes it", async () => {
+    renderToday();
+    await waitFor(() => expect(screen.getByTestId("open-outfit-o1")).toBeTruthy(), { timeout: 5000 });
+    expect(screen.queryByTestId("outfit-fullscreen")).toBeNull();
+    fireEvent.press(screen.getByTestId("open-outfit-o1"));
+    await waitFor(() => expect(screen.getByTestId("outfit-fullscreen")).toBeTruthy());
+    fireEvent.press(screen.getByTestId("outfit-fullscreen-close"));
+    await waitFor(() => expect(screen.queryByTestId("outfit-fullscreen")).toBeNull());
+  });
+
   it("shows the Work-first chips, outfit badges and the setup checklist", async () => {
     renderToday();
     await waitFor(() => expect(screen.getByTestId("outfit-o1")).toBeTruthy(), { timeout: 5000 });
