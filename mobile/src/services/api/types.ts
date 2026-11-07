@@ -45,7 +45,8 @@ export type OutfitStatus = "suggested" | "saved" | "worn";
 export type FeedbackValue = "like" | "dislike";
 
 export const DRESS_CODES: DressCode[] = ["formal", "smart_casual", "casual", "creative"];
-export const WARDROBES: Wardrobe[] = ["menswear", "womenswear", "both"];
+/** Onboarding order: womenswear first and pre-selected (decision #2: women first, then men). */
+export const WARDROBES: Wardrobe[] = ["womenswear", "menswear", "both"];
 export const CATEGORIES: ItemCategory[] = ["top", "bottom", "dress", "outerwear", "shoes", "accessory"];
 export const OCCASIONS: Occasion[] = ["work", "friends", "date", "event", "casual", "sport", "travel"];
 export const GARMENT_COLORS: GarmentColor[] = ["white", "black", "grey", "navy", "beige", "camel", "brown", "olive", "blue", "light_blue", "red", "burgundy", "pink", "green", "yellow", "orange", "purple", "cream"];
