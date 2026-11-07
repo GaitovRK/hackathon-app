@@ -2,6 +2,7 @@ import { Image } from "expo-image";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Line, Path } from "react-native-svg";
 import { Icon } from "@/components/Icons/Icon";
+import { starterImageFor } from "@/content/starterImages";
 import type { GarmentColor, ItemCategory, Pattern } from "@/services/api/types";
 import { useTheme } from "@/theme/useTheme";
 import { shapeFor } from "./garmentShapes";
@@ -13,6 +14,7 @@ export type TileGarment = {
   primaryColor: GarmentColor;
   pattern?: Pattern;
   imageUrl?: string | null;
+  starterKey?: string | null;
 };
 
 type Props = {
@@ -32,15 +34,16 @@ type CutoutProps = Pick<Props, "garment" | "size"> & { width?: number; height?: 
 
 /**
  * One garment as a flat cutout (board `.gv`): the tinted silhouette with a faint edge, then seam lines and
- * buttons. No white cut, tilt or shadow. A photo item shows its `imageUrl` instead. `ghost` draws the grey
- * locked silhouette.
+ * buttons. No white cut, tilt or shadow. A photo item shows its `imageUrl` instead, a common starter basic its bundled
+ * product cutout. `ghost` draws the grey locked silhouette.
  */
 export function GarmentCutout({ garment, size = 96, width, height, ghost = false }: CutoutProps) {
   const { colors, radius, garment: palette, darkGarments, block } = useTheme();
   const w = width ?? size;
   const h = height ?? size;
-  if (garment.imageUrl && !ghost) {
-    return <Image source={{ uri: garment.imageUrl }} style={{ width: w, height: h, borderRadius: radius.md }} contentFit="contain" accessibilityLabel={garment.name} />;
+  const photo = garment.imageUrl ? { uri: garment.imageUrl } : starterImageFor(garment.starterKey);
+  if (photo && !ghost) {
+    return <Image source={photo} style={{ width: w, height: h, borderRadius: radius.md }} contentFit="contain" accessibilityLabel={garment.name} />;
   }
   const fill = ghost ? colors.ghost : (palette[garment.primaryColor] ?? palette.grey);
   const shape = shapeFor(garment.category, garment.subcategory);
