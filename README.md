@@ -26,7 +26,7 @@ cp .env.example .env          # EXPO_PUBLIC_API_URL (your LAN IP for a phone), R
 pnpm install
 pnpm expo start               # open in the dev client
 ```
-RevenueCat needs native code, so it doesn't run in Expo Go: build a development client once (`pnpm dlx eas-cli build --profile development`, or `pnpm expo run:ios` locally), then use `pnpm expo start`. Without RevenueCat keys the app runs and the paywall says purchases are unavailable.
+RevenueCat needs native code, so it doesn't run in Expo Go: build a development client once (`pnpm dlx eas-cli build --profile development`, or `pnpm expo run:ios` locally), then use `pnpm expo start`. Without RevenueCat keys the app runs and paywall moments show "purchases are not available". There is no custom paywall screen: every paywall moment presents the RevenueCat dashboard paywall (`mobile/src/services/purchases/presentPaywall.ts`).
 
 ## Architecture and security
 - **fal key stays on the server.** The app never talks to fal: a key in the bundle can be extracted and drained. The server allows only the models in `server/src/fal/models.ts` (endpoint + zod input schema), so it isn't an open proxy, submits to the fal queue and polls the status.

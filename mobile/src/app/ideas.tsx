@@ -2,11 +2,11 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { ButtonPrimary } from "@/components/Buttons/ButtonPrimary";
-import { ButtonSecondary } from "@/components/Buttons/ButtonSecondary";
+import { ButtonVolt } from "@/components/Buttons/ButtonSecondary";
+import { Icon } from "@/components/Icons/Icon";
 import { IdeasGrid } from "@/components/Ideas/IdeasGrid";
 import { Screen } from "@/components/Layout/Screen";
 import { FlowHeader } from "@/components/Outfit/FlowHeader";
-import { LockIcon } from "@/components/Outfit/ProBadge";
 import { StatusMessage } from "@/components/Status/StatusMessage";
 import { useProPaywall } from "@/hooks/purchases/useProPaywall";
 import { t, type MessageKey } from "@/i18n/t";
@@ -78,7 +78,7 @@ export default function IdeasScreen() {
 
       <View style={[styles.row, styles.between]}>
         <Text style={[styles.flex, { color: colors.muted, fontSize: fontSize.sm, fontFamily: fontFamily.body }]}>{t("ideas.hint")}</Text>
-        <View style={{ backgroundColor: colors.accentSoft, borderRadius: radius.full, paddingHorizontal: spacing.md, height: 28, justifyContent: "center" }}>
+        <View style={{ backgroundColor: colors.lilac, borderRadius: radius.full, paddingHorizontal: spacing.md, height: 28, justifyContent: "center" }}>
           <Text testID="ideas-liked-count" style={{ color: colors.foreground, fontSize: fontSize.xs, fontFamily: fontFamily.bodyBold }}>
             {t("ideas.liked", { count: selected.length })}
           </Text>
@@ -108,9 +108,9 @@ export default function IdeasScreen() {
       />
       {result.lockedCount > 0 ? (
         <View style={{ gap: spacing.xs }}>
-          <ButtonSecondary testID="ideas-unlock" label={t("ideas.unlock", { count: result.lockedCount })} onPress={() => void unlock()} loading={pro.opening || regenerateState.isLoading} />
+          <ButtonVolt testID="ideas-unlock" icon={<Icon name="lock" size={16} />} label={t("ideas.unlock", { count: result.lockedCount })} onPress={() => void unlock()} loading={pro.opening || regenerateState.isLoading} />
           <View style={[styles.row, { gap: spacing.xs, justifyContent: "center" }]}>
-            <LockIcon size={12} color={colors.muted} />
+            <Icon name="lock" size={12} color={colors.ink3} />
             <Text style={{ color: colors.muted, fontSize: fontSize.xs, fontFamily: fontFamily.bodySemibold }}>{t("ideas.plans", { free: result.freeVisible, pro: result.proMax })}</Text>
           </View>
         </View>

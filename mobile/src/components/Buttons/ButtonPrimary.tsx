@@ -1,16 +1,32 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import type { ReactNode } from "react";
+import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
 import { useTheme } from "@/theme/useTheme";
 
-export type ButtonProps = { label: string; onPress: () => void; disabled?: boolean; loading?: boolean; testID?: string };
+export type ButtonProps = {
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+  loading?: boolean;
+  testID?: string;
+  /** 40h small pill (board `.btn.sm`). */
+  small?: boolean;
+  /** Optional leading icon. */
+  icon?: ReactNode;
+  /** Shrink to content instead of stretching. */
+  inline?: boolean;
+};
 
-type ChunkyProps = ButtonProps & { variant: "primary" | "secondary" | "pop" };
+export type PillVariant = "primary" | "secondary" | "pop" | "ghost";
 
-/** Chunky button (board `.btn`): 58px face with a 2.5px edge over an offset edge-colored View as the hard shadow; pressing drops the face. */
-export function ChunkyButton({ label, onPress, disabled, loading, testID, variant }: ChunkyProps) {
-  const { colors, radius, spacing, fontSize, fontFamily, block } = useTheme();
+type PillProps = ButtonProps & { variant: PillVariant };
+
+/** Board `.btn`: 52h pill, Figtree 700. primary = ink, secondary = mist, pop = volt (Pro / upsell), ghost = text only. Pressed scales to .97. */
+export function PillButton({ label, onPress, disabled, loading, testID, small, icon, inline, variant }: PillProps) {
+  const { colors, spacing, fontSize, fontFamily, block, radius } = useTheme();
   const inactive = disabled || loading;
-  const face = variant === "primary" ? colors.accent : variant === "pop" ? colors.accentSoft : colors.surface;
-  const text = variant === "primary" ? colors.accentForeground : colors.foreground;
+  const bg =
+    inactive && variant !== "ghost" ? colors.chip : variant === "primary" ? colors.ink : variant === "pop" ? colors.volt : variant === "secondary" ? colors.mist : "transparent";
+  const text = inactive ? colors.ink3 : variant === "primary" ? colors.paper : colors.ink;
   return (
     <Pressable
       testID={testID}
@@ -18,33 +34,41 @@ export function ChunkyButton({ label, onPress, disabled, loading, testID, varian
       accessibilityState={{ disabled: !!inactive, busy: !!loading }}
       disabled={inactive}
       onPress={onPress}
-      style={[styles.wrap, { paddingBottom: block.buttonShadowOffset }, inactive && styles.dim]}
+      style={({ pressed }) => [
+        styles.pill,
+        {
+          height: small ? block.buttonHeightSmall : block.buttonHeight,
+          paddingHorizontal: small ? spacing.lg : spacing.xl - 2,
+          borderRadius: radius.btn,
+          backgroundColor: bg,
+          gap: spacing.sm,
+          alignSelf: inline ? "flex-start" : "stretch",
+        },
+        pressed && styles.pressed,
+      ]}
     >
-      {({ pressed }) => (
+      {loading ? (
+        <ActivityIndicator color={text} />
+      ) : (
         <>
-          <View style={[styles.shadow, { backgroundColor: colors.border, borderRadius: radius.btn, top: block.buttonShadowOffset }]} />
-          <View
-            style={[
-              styles.face,
-              { height: block.buttonHeight, backgroundColor: face, borderColor: colors.border, borderWidth: block.buttonBorder, borderRadius: radius.btn, paddingHorizontal: spacing.xl },
-              pressed && { transform: [{ translateY: block.buttonShadowOffset - 1 }] },
-            ]}
-          >
-            {loading ? <ActivityIndicator color={text} /> : <Text style={{ color: text, fontSize: fontSize.lg, fontFamily: fontFamily.bodyBold }}>{label}</Text>}
-          </View>
+          {icon}
+          <Text numberOfLines={1} style={{ color: text, fontSize: small ? fontSize.sm + 1 : fontSize.lg, fontFamily: fontFamily.bodyBold }}>
+            {label}
+          </Text>
         </>
       )}
     </Pressable>
   );
 }
 
+/** @deprecated kept for backward compatibility; use `PillButton`. */
+export const ChunkyButton = PillButton;
+
 export function ButtonPrimary(props: ButtonProps) {
-  return <ChunkyButton {...props} variant="primary" />;
+  return <PillButton {...props} variant="primary" />;
 }
 
 const styles = StyleSheet.create({
-  wrap: { alignSelf: "stretch" },
-  shadow: { position: "absolute", left: 0, right: 0, bottom: 0 },
-  face: { alignItems: "center", justifyContent: "center" },
-  dim: { opacity: 0.5 },
+  pill: { flexDirection: "row", alignItems: "center", justifyContent: "center" },
+  pressed: { transform: [{ scale: 0.97 }] },
 });

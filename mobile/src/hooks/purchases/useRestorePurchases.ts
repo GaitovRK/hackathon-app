@@ -5,7 +5,7 @@ import { restorePurchases } from "@/services/purchases/openPaywall";
 import { api } from "@/store/api";
 import { useAppDispatch } from "@/store";
 
-/** Restore Purchases (Guideline 3.1.1): used by Paywall and Settings. Refreshes /me afterwards. */
+/** Restore Purchases (Guideline 3.1.1): reachable in Settings (the dashboard paywall has its own). Refreshes /me afterwards. */
 export function useRestorePurchases() {
   const dispatch = useAppDispatch();
   const [restoring, setRestoring] = useState(false);

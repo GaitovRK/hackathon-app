@@ -1,32 +1,20 @@
 import { useCallback, useState } from "react";
-import { PAYWALL_RESULT } from "react-native-purchases-ui";
-import { didPurchase, openPaywall } from "@/services/purchases/openPaywall";
-import { openPaywallScreen } from "@/services/purchases/paywallRoute";
-import { useAppDispatch } from "@/store";
-import { api } from "@/store/api";
+import { presentPaywall } from "@/services/purchases/presentPaywall";
 
 /**
- * Every locked / Pro moment (weather row, locked ideas, outfit score) calls this: the RevenueCat
- * dashboard paywall is presented (no custom paywall UI); a build without purchases falls back to the
- * in-app paywall screen so the moment is still visible. Resolves true after a purchase or restore.
+ * Every locked / Pro moment in the outfit flows (weather row, locked ideas, outfit score) calls this: the
+ * RevenueCat dashboard paywall via `presentPaywall` (no custom paywall UI), with an `opening` flag for the
+ * button. Resolves true after a purchase or restore.
  */
 export function useProPaywall() {
-  const dispatch = useAppDispatch();
   const [opening, setOpening] = useState(false);
   const open = useCallback(async (): Promise<boolean> => {
     setOpening(true);
     try {
-      const result = await openPaywall({ force: true });
-      if (result === PAYWALL_RESULT.NOT_PRESENTED) {
-        openPaywallScreen("PRO_FEATURE");
-        return false;
-      }
-      if (!didPurchase(result)) return false;
-      dispatch(api.util.invalidateTags(["Me", "Outfit"]));
-      return true;
+      return await presentPaywall();
     } finally {
       setOpening(false);
     }
-  }, [dispatch]);
+  }, []);
   return { open, opening };
 }

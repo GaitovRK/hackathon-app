@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { ButtonPrimary } from "@/components/Buttons/ButtonPrimary";
 import { ButtonSecondary } from "@/components/Buttons/ButtonSecondary";
 import { Chip } from "@/components/Chips/Chip";
@@ -8,6 +8,7 @@ import { RowSwiper } from "@/components/DressMe/RowSwiper";
 import { Screen } from "@/components/Layout/Screen";
 import { FlowHeader } from "@/components/Outfit/FlowHeader";
 import { ProBadge } from "@/components/Outfit/ProBadge";
+import { BannerVolt } from "@/components/Status/BannerVolt";
 import { StatusMessage } from "@/components/Status/StatusMessage";
 import { useProPaywall } from "@/hooks/purchases/useProPaywall";
 import { t, type MessageKey } from "@/i18n/t";
@@ -28,7 +29,7 @@ export function shuffleIndex(current: number, length: number, random: () => numb
 
 /** Dress me (board 04): a swipe row per category, pin a row and Shuffle the rest, then save the look as an outfit. Uses the closet items endpoint. */
 export default function DressMeScreen() {
-  const { colors, spacing, fontSize, fontFamily, radius } = useTheme();
+  const { spacing } = useTheme();
   const ready = useAppSelector((s) => s.session.status === "ready");
   const items = useItemsQuery(undefined, { skip: !ready });
   const [save, saveState] = useSaveIdeasMutation();
@@ -115,15 +116,7 @@ export default function DressMeScreen() {
       ) : null}
 
       {allStarter ? (
-        <View style={[styles.row, { gap: spacing.md, backgroundColor: colors.warning, borderRadius: radius.tile, padding: spacing.lg }]}>
-          <View style={styles.flex}>
-            <Text style={{ color: colors.foreground, fontSize: fontSize.md, fontFamily: fontFamily.bodyBold }}>{t("dressMe.bannerTitle")}</Text>
-            <Text style={{ color: colors.foreground, fontSize: fontSize.xs, fontFamily: fontFamily.body }}>{t("dressMe.bannerBody")}</Text>
-          </View>
-          <Pressable testID="dressme-add-photos" accessibilityRole="button" onPress={() => router.push({ pathname: "/onboarding/closet", params: { mode: "add" } })} style={{ backgroundColor: colors.foreground, borderRadius: radius.full, paddingHorizontal: spacing.md, height: 38, justifyContent: "center" }}>
-            <Text style={{ color: colors.background, fontSize: fontSize.sm, fontFamily: fontFamily.bodyBold }}>{t("dressMe.addPhotos")}</Text>
-          </Pressable>
-        </View>
+        <BannerVolt testID="dressme-add-photos" title={t("dressMe.bannerTitle")} subtitle={t("dressMe.bannerBody")} actionLabel={t("dressMe.addPhotos")} onAction={() => router.push({ pathname: "/onboarding/closet", params: { mode: "add" } })} />
       ) : null}
 
       {error ? <StatusMessage kind="error" message={t("status.error")} /> : null}

@@ -1,128 +1,80 @@
-import { Image } from "expo-image";
-import { StyleSheet, View } from "react-native";
-import Svg, { Path } from "react-native-svg";
-import { shapeFor } from "@/components/Items/garmentShapes";
-import type { GarmentColor, ItemCategory, LockedSlot, OutfitItem, OutfitSlot, Pattern } from "@/services/api/types";
-import { useTheme } from "@/theme/useTheme";
+import { StyleSheet, View, type DimensionValue } from "react-native";
+import { GarmentCutout, type TileGarment } from "@/components/Items/ItemTile";
 
-/** What the flat-lay needs per garment; a locked idea only has the shape (`ghost`). */
-export type FlatLayGarment = {
-  category: ItemCategory;
-  subcategory: string;
-  name?: string;
-  primaryColor?: GarmentColor;
-  pattern?: Pattern;
-  imageUrl?: string | null;
+type Props = {
+  garments: TileGarment[];
+  /** Box width; height = width / 0.68 (board `.ol`). */
+  width: number;
+  /** Grey locked silhouettes (Pro). */
+  ghost?: boolean;
+  testID?: string;
 };
 
-export type FlatLaySlot = { slot: OutfitSlot; garment: FlatLayGarment };
+type Slot = { left: number; top: number; width: number; height: number; z: number };
 
-/** Board aspect ratio of the `.ol` box. */
-export const FLAT_LAY_ASPECT = 0.68;
-
-type Box = { left: number; top: number; width: number; height: number; z: number };
-
-/** Percent positions of the board `.ol` slots (design-e.html). */
-const BOX: Record<"top" | "bottom" | "belt" | "shoes" | "accessory" | "accessorySmall" | "dress", Box> = {
+/** Slot boxes in % of the 0.68 box (board `.ol .top/.bot/.blt/.sho/.acc/.dre`). */
+const SLOTS = {
   top: { left: 16, top: 2, width: 68, height: 40, z: 3 },
   bottom: { left: 27, top: 37, width: 46, height: 50, z: 2 },
-  belt: { left: 31, top: 39.6, width: 38, height: 5, z: 4 },
+  belt: { left: 31, top: 39.6, width: 38, height: 4, z: 4 },
   shoes: { left: 22, top: 82, width: 56, height: 16, z: 5 },
-  accessory: { left: 63, top: 45, width: 30, height: 22, z: 6 },
-  accessorySmall: { left: 5, top: 30, width: 16, height: 24, z: 6 },
+  acc: { left: 63, top: 45, width: 30, height: 22, z: 6 },
   dress: { left: 22, top: 2, width: 56, height: 82, z: 2 },
-};
+} satisfies Record<string, Slot>;
 
-const SMALL_ACCESSORIES = new Set(["watch", "belt"]);
+const pct = (n: number) => `${n}%` as DimensionValue;
 
-export const flatLaySlotsOf = (items: OutfitItem[]): FlatLaySlot[] => items.map((i) => ({ slot: i.slot, garment: i.item }));
-export const flatLaySlotsOfLocked = (slots: LockedSlot[]): FlatLaySlot[] => slots.map((s) => ({ slot: s.slot, garment: { category: s.category, subcategory: s.subcategory } }));
-
-type CutoutProps = { garment: FlatLayGarment; width: number; height: number; ghost: boolean; half?: "left" | "right" };
-
-/**
- * One garment cutout scaled into a box (no tilt, no sticker cut). `half` shows only the left or right
- * half of the garment: the board's split layer, so an outer layer and the top under it both stay visible.
- */
-function GarmentCutout({ garment, width, height, ghost, half }: CutoutProps) {
-  const { colors, garment: palette, darkGarments } = useTheme();
-  const fill = ghost ? colors.surfaceAlt : (palette[garment.primaryColor ?? "grey"] ?? palette.grey);
-  const detail = garment.primaryColor && darkGarments.has(garment.primaryColor) ? colors.stickerDetailLight : colors.stickerDetail;
-  const shape = shapeFor(garment.category, garment.subcategory);
-  const stretch = garment.subcategory === "belt";
-  const full = half ? width * 2 : width;
-
-  const art =
-    !ghost && garment.imageUrl ? (
-      <Image source={{ uri: garment.imageUrl }} style={{ width: full, height }} contentFit="contain" accessibilityLabel={garment.name} />
-    ) : (
-      <Svg width={full} height={height} viewBox="0 0 100 100" preserveAspectRatio={stretch ? "none" : "xMidYMid meet"} accessibilityLabel={garment.name}>
-        <Path d={shape.body} fill={fill} stroke={ghost ? colors.borderSoft : colors.stickerBodyStroke} strokeWidth={1} strokeLinejoin="round" />
-        {!ghost && shape.detail ? <Path d={shape.detail} fill="none" stroke={detail} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" /> : null}
-        {!ghost && shape.dots ? <Path d={shape.dots} fill="none" stroke={detail} strokeWidth={3} strokeLinecap="round" /> : null}
-      </Svg>
-    );
-  if (!half) return art;
-  return (
-    <View style={{ width, height, overflow: "hidden" }} testID={`flatlay-half-${half}`}>
-      <View style={{ width: full, height, marginLeft: half === "right" ? -width : 0 }}>{art}</View>
-    </View>
-  );
+/** Picks the garments for each slot: outer layer + base top, bottom or dress, belt, shoes, one accessory. */
+export function slotGarments(garments: TileGarment[]) {
+  const find = (pred: (g: TileGarment) => boolean) => garments.find(pred);
+  const layer = find((g) => g.category === "outerwear");
+  const base = find((g) => g.category === "top");
+  const dress = find((g) => g.category === "dress");
+  const bottom = dress ? undefined : find((g) => g.category === "bottom");
+  const belt = find((g) => g.category === "accessory" && g.subcategory === "belt");
+  const acc = find((g) => g.category === "accessory" && g.subcategory !== "belt");
+  const shoes = find((g) => g.category === "shoes");
+  return { layer, base, dress, bottom, belt, acc, shoes };
 }
 
-type Props = { slots: FlatLaySlot[]; width: number; ghost?: boolean; testID?: string };
-
 /**
- * The half-and-half layered flat-lay (board screens 03, 06, 07): cutouts stacked top / bottom / shoes
- * with the accessory beside them. Outerwear is shown as its left half with the top's (or dress's) right
- * half next to it, so both layers read. Built from item cutouts only: no image generation.
+ * The layered flat-lay (board `OutfitStack`): top over bottom over shoes. With an outer layer, the top
+ * slot shows the outer layer as the left half and the base layer as the right half (hard vertical split).
+ * Plain Views + SVG cutouts, no image generation.
  */
-export function OutfitFlatLay({ slots, width, ghost = false, testID }: Props) {
-  const height = width / FLAT_LAY_ASPECT;
-  const by = Object.fromEntries(slots.map((s) => [s.slot, s.garment])) as Partial<Record<OutfitSlot, FlatLayGarment>>;
-  const px = (b: Box) => ({ left: (b.left / 100) * width, top: (b.top / 100) * height, width: (b.width / 100) * width, height: (b.height / 100) * height, zIndex: b.z });
+export function OutfitFlatLay({ garments, width, ghost = false, testID }: Props) {
+  const height = width / 0.68;
+  const s = slotGarments(garments);
+  const box = (slot: Slot) => ({ position: "absolute" as const, left: pct(slot.left), top: pct(slot.top), width: pct(slot.width), height: pct(slot.height), zIndex: slot.z });
+  const px = (slot: Slot) => ({ w: (slot.width / 100) * width, h: (slot.height / 100) * height });
+  const cut = (g: TileGarment, slot: Slot) => <GarmentCutout garment={g} width={px(slot).w} height={px(slot).h} ghost={ghost} />;
+  const top = SLOTS.top;
+  const topPx = px(top);
+  const label = garments.map((g) => g.name).join(", ");
 
-  const layered = (base: FlatLayGarment | undefined, box: Box, key: string) => {
-    const p = px(box);
-    const outer = by.outerwear;
-    if (outer && base) {
-      return (
-        <View key={key} style={[styles.abs, p, styles.row]} testID={`flatlay-${key}-split`}>
-          <GarmentCutout garment={outer} width={p.width / 2} height={p.height} ghost={ghost} half="left" />
-          <GarmentCutout garment={base} width={p.width / 2} height={p.height} ghost={ghost} half="right" />
+  return (
+    <View testID={testID} accessibilityRole="image" accessibilityLabel={label} style={{ width, height }}>
+      {s.dress ? <View style={box(SLOTS.dress)}>{cut(s.dress, SLOTS.dress)}</View> : null}
+      {!s.dress && s.layer && s.base ? (
+        <View style={box(top)}>
+          <View style={[styles.half, { left: 0, width: topPx.w / 2 }]}>
+            <GarmentCutout garment={s.layer} width={topPx.w} height={topPx.h} ghost={ghost} />
+          </View>
+          <View style={[styles.half, { left: topPx.w / 2, width: topPx.w / 2 }]}>
+            <View style={{ marginLeft: -topPx.w / 2 }}>
+              <GarmentCutout garment={s.base} width={topPx.w} height={topPx.h} ghost={ghost} />
+            </View>
+          </View>
         </View>
-      );
-    }
-    const only = base ?? outer;
-    if (!only) return null;
-    return (
-      <View key={key} style={[styles.abs, p]} testID={`flatlay-${key}`}>
-        <GarmentCutout garment={only} width={p.width} height={p.height} ghost={ghost} />
-      </View>
-    );
-  };
-
-  const single = (garment: FlatLayGarment | undefined, box: Box, key: string) => {
-    if (!garment) return null;
-    const p = px(box);
-    return (
-      <View key={key} style={[styles.abs, p]} testID={`flatlay-${key}`}>
-        <GarmentCutout garment={garment} width={p.width} height={p.height} ghost={ghost} />
-      </View>
-    );
-  };
-
-  const accessory = by.accessory;
-  const accessoryBox = accessory?.subcategory === "belt" ? BOX.belt : accessory && SMALL_ACCESSORIES.has(accessory.subcategory) ? BOX.accessorySmall : BOX.accessory;
-
-  return (
-    <View testID={testID} style={{ width, height }} accessibilityRole="image" accessibilityLabel={slots.map((s) => s.garment.name ?? s.garment.subcategory).join(", ")}>
-      {by.dress ? layered(by.dress, BOX.dress, "dress") : layered(by.top, BOX.top, "top")}
-      {single(by.bottom, BOX.bottom, "bottom")}
-      {single(by.shoes, BOX.shoes, "shoes")}
-      {single(accessory, accessoryBox, "accessory")}
+      ) : null}
+      {!s.dress && (s.layer ?? s.base) && !(s.layer && s.base) ? <View style={box(top)}>{cut((s.layer ?? s.base)!, top)}</View> : null}
+      {s.dress && s.layer ? <View style={[box(top), { zIndex: 3 }]}>{cut(s.layer, top)}</View> : null}
+      {s.bottom ? <View style={box(SLOTS.bottom)}>{cut(s.bottom, SLOTS.bottom)}</View> : null}
+      {s.belt && !s.dress ? <View style={box(SLOTS.belt)}>{cut(s.belt, SLOTS.belt)}</View> : null}
+      {s.shoes ? <View style={box(SLOTS.shoes)}>{cut(s.shoes, SLOTS.shoes)}</View> : null}
+      {s.acc ? <View style={box(SLOTS.acc)}>{cut(s.acc, SLOTS.acc)}</View> : null}
     </View>
   );
 }
 
-const styles = StyleSheet.create({ abs: { position: "absolute" }, row: { flexDirection: "row" } });
+const styles = StyleSheet.create({ half: { position: "absolute", top: 0, bottom: 0, overflow: "hidden" } });

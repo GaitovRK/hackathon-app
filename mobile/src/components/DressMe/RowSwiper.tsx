@@ -65,7 +65,7 @@ export function RowSwiper({ label, items, index, pinned, onIndexChange, onToggle
         >
           {items.map((item, i) => (
             <View key={item.id} testID={`${testID}-item-${i}`} style={{ width: ITEM, alignItems: "center" }}>
-              <GarmentSticker garment={item} size={i === index ? ITEM : ITEM - 16} tilt={0} />
+              <GarmentSticker garment={item} size={i === index ? ITEM : ITEM - 16} />
             </View>
           ))}
         </ScrollView>

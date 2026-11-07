@@ -3,9 +3,10 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { Provider } from "react-redux";
 import { setQuotaExceededHandler } from "@/services/api/quotaHandler";
-import { openPaywallScreen } from "@/services/purchases/paywallRoute";
+import { presentPaywall, setPaywallUnlockedHandler } from "@/services/purchases/presentPaywall";
 import { bootstrapSession } from "@/services/session/bootstrap";
 import { makeStore } from "@/store";
+import { api } from "@/store/api";
 import { useAppFonts } from "@/theme/useAppFonts";
 import { useTheme } from "@/theme/useTheme";
 
@@ -15,9 +16,13 @@ export default function RootLayout() {
   const { colors } = useTheme();
 
   useEffect(() => {
-    setQuotaExceededHandler((code) => openPaywallScreen(code));
+    setQuotaExceededHandler(() => void presentPaywall());
+    setPaywallUnlockedHandler(() => store.dispatch(api.util.invalidateTags(["Me", "Outfit"])));
     void bootstrapSession(store.dispatch);
-    return () => setQuotaExceededHandler(null);
+    return () => {
+      setQuotaExceededHandler(null);
+      setPaywallUnlockedHandler(null);
+    };
   }, [store]);
 
   if (!fontsReady) return null;
@@ -28,7 +33,6 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="onboarding" />
-        <Stack.Screen name="paywall" options={{ presentation: "modal" }} />
       </Stack>
     </Provider>
   );

@@ -6,14 +6,14 @@ import { ButtonSecondary } from "@/components/Buttons/ButtonSecondary";
 import { GarmentSticker } from "@/components/Items/ItemTile";
 import { Screen } from "@/components/Layout/Screen";
 import { FlowHeader } from "@/components/Outfit/FlowHeader";
-import { flatLaySlotsOf, OutfitFlatLay } from "@/components/Outfit/OutfitFlatLay";
+import { OutfitFlatLay } from "@/components/Outfit/OutfitFlatLay";
 import { StatusMessage } from "@/components/Status/StatusMessage";
 import { t } from "@/i18n/t";
 import { localDate, type OutfitItem, type OutfitTemplate } from "@/services/api/types";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { useOutfitQuery, useSaveIdeasMutation, useSaveOutfitMutation, useWearOutfitMutation } from "@/store/api";
 import { ideasSaved } from "@/store/ideasSlice";
-import { displayStyle, useTheme } from "@/theme/useTheme";
+import { reasonStyle, useTheme } from "@/theme/useTheme";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -73,12 +73,12 @@ export default function OutfitDetailScreen() {
       {shown ? (
         <>
           <View style={[styles.center, { backgroundColor: colors.surface, borderRadius: radius.card, padding: spacing.lg }]}>
-            <OutfitFlatLay testID="outfit-flatlay" slots={flatLaySlotsOf(shown.items)} width={flatLayWidth} />
+            <OutfitFlatLay testID="outfit-flatlay" garments={shown.items.map((i) => i.item)} width={flatLayWidth} />
             <View style={[styles.pill, { left: spacing.md, bottom: spacing.md, backgroundColor: colors.surfaceAlt, borderRadius: radius.full, paddingHorizontal: spacing.md }]}>
               <Text style={{ color: colors.muted, fontSize: fontSize.xs, fontFamily: fontFamily.bodySemibold }}>{t("ideas.laidOut")}</Text>
             </View>
           </View>
-          <Text testID="outfit-reason" style={displayStyle(fontSize.xl, colors.foreground)}>
+          <Text testID="outfit-reason" style={reasonStyle(fontSize.reason, colors.ink)}>
             {shown.reason}
           </Text>
           <Text style={{ color: colors.foreground, fontSize: fontSize.sm, fontFamily: fontFamily.bodyBold }}>{t("ideas.itemsCount", { count: shown.items.length })}</Text>
@@ -86,7 +86,7 @@ export default function OutfitDetailScreen() {
             {shown.items.map((i) => (
               <View key={i.slot} style={[styles.center, styles.flex, { gap: spacing.xs }]}>
                 <View style={[styles.center, { width: 58, height: 58, borderRadius: radius.md, backgroundColor: colors.surface }]}>
-                  <GarmentSticker garment={i.item} size={44} tilt={0} />
+                  <GarmentSticker garment={i.item} size={44} />
                 </View>
                 <Text numberOfLines={1} style={{ color: colors.muted, fontSize: fontSize.xs, fontFamily: fontFamily.bodySemibold }}>
                   {i.item.name}

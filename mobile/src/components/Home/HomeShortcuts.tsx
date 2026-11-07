@@ -20,8 +20,8 @@ export function HomeShortcuts() {
   );
   return (
     <View style={[styles.row, { gap: spacing.md }]}>
-      {tile(t("home.generate"), t("home.generateSub"), () => router.push("/generate"), "home-generate", colors.accentSoft)}
-      {tile(t("home.dressMe"), t("home.dressMeSub"), () => router.push("/dress-me"), "home-dress-me", colors.surfaceAlt)}
+      {tile(t("home.generate"), t("home.generateSub"), () => router.push("/generate"), "home-generate", colors.lilac2)}
+      {tile(t("home.dressMe"), t("home.dressMeSub"), () => router.push("/dress-me"), "home-dress-me", colors.mist)}
     </View>
   );
 }

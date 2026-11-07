@@ -38,10 +38,8 @@ describe("IdeasGrid", () => {
     expect(onToggle).not.toHaveBeenCalled();
   });
 
-  it("draws the outer layer as a split with the top beside it", async () => {
+  it("draws every idea as a flat-lay of its items", async () => {
     await setup();
-    expect(screen.getAllByTestId("flatlay-top-split").length).toBeGreaterThan(0);
-    expect(screen.getAllByTestId("flatlay-half-left").length).toBeGreaterThan(0);
-    expect(screen.getAllByTestId("flatlay-half-right").length).toBeGreaterThan(0);
+    expect(screen.getByLabelText(mockIdeas[0].items.map((i) => i.item.name).join(", "))).toBeTruthy();
   });
 });
