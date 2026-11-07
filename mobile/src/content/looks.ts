@@ -17,6 +17,25 @@ const g = (starterKey: string, name: string, category: ItemCategory, subcategory
 
 /** Visuals of the starter basics used by the looks (ids match `server/src/starter-catalog/catalog.ts`). */
 const G = {
+  // Womenswear
+  silkShell: g("white-silk-shell", "White silk shell", "top", "blouse", "white"),
+  cardigan: g("cream-knit-cardigan", "Cream knit cardigan", "top", "cardigan", "cream", "texture"),
+  breton: g("breton-tee", "Striped breton tee", "top", "breton", "white", "stripe"),
+  midiSkirt: g("black-midi-skirt", "Black midi skirt", "bottom", "midi_skirt", "black"),
+  pleatedSkirt: g("camel-pleated-skirt", "Camel pleated skirt", "bottom", "pleated_skirt", "camel"),
+  wideLeg: g("cream-wide-leg-trousers", "Cream wide-leg trousers", "bottom", "wide_leg", "cream"),
+  straightJeans: g("straight-jeans", "Straight-leg jeans", "bottom", "jeans", "light_blue"),
+  beltedTrench: g("camel-belted-trench", "Camel belted trench", "outerwear", "trench", "camel"),
+  croppedBlazer: g("black-cropped-blazer", "Black cropped blazer", "outerwear", "cropped_blazer", "black"),
+  blazerDress: g("black-blazer-dress", "Black blazer dress", "dress", "blazer_dress", "black"),
+  slipDress: g("satin-slip-dress", "Champagne slip dress", "dress", "slip_dress", "beige"),
+  flats: g("black-ballet-flats", "Black ballet flats", "shoes", "flats", "black"),
+  blockHeels: g("tan-block-heels", "Tan block heels", "shoes", "block_heels", "camel"),
+  heeledBoots: g("brown-heeled-ankle-boots", "Brown heeled ankle boots", "shoes", "ankle_boots", "brown"),
+  blackLoafers: g("black-loafers", "Black loafers", "shoes", "loafers", "black"),
+  tanTote: g("tan-leather-tote", "Tan leather tote", "accessory", "tote", "camel"),
+  waistBelt: g("black-waist-belt", "Black waist belt", "accessory", "belt", "black"),
+  // Unisex / menswear
   oxford: g("white-oxford-shirt", "White oxford shirt", "top", "shirt", "white"),
   blueShirt: g("light-blue-shirt", "Light blue shirt", "top", "shirt", "light_blue"),
   stripedShirt: g("striped-shirt", "Blue striped shirt", "top", "shirt", "white", "stripe"),
@@ -58,28 +77,32 @@ const G = {
   watch: g("silver-watch", "Silver watch", "accessory", "watch", "grey"),
 };
 
-/** Same ids and item sets as `server/src/starter-catalog/looks.ts` (the server turns likes into style tags). */
+/**
+ * Same ids and item sets as `server/src/starter-catalog/looks.ts` (the server turns likes into style tags;
+ * `looks.spec.ts` there fails if they drift). Women first (decision #2): 14 womenswear-led looks lead the
+ * deck, then unisex and menswear.
+ */
 export const LOOKS: LookContent[] = [
+  { id: "look-breton-flats", title: "Breton weekend", wardrobe: "womenswear", items: [G.breton, G.straightJeans, G.flats, G.tanTote] },
+  { id: "look-midi", title: "Midi and heels", wardrobe: "womenswear", items: [G.midiDress, G.heels, G.tote] },
+  { id: "look-cardigan-midi", title: "Soft knit and midi", wardrobe: "womenswear", items: [G.cardigan, G.midiSkirt, G.heeledBoots] },
+  { id: "look-silk-pencil", title: "Silk and pencil skirt", wardrobe: "womenswear", items: [G.silkBlouse, G.pencilSkirt, G.heels] },
+  { id: "look-wide-leg", title: "Wide-leg tailoring", wardrobe: "womenswear", items: [G.silkShell, G.wideLeg, G.blockHeels, G.croppedBlazer] },
+  { id: "look-slip-leather", title: "Slip and leather", wardrobe: "womenswear", items: [G.slipDress, G.ankleBoots, G.leather] },
+  { id: "look-pleats-loafers", title: "Pleats and loafers", wardrobe: "womenswear", items: [G.silkShell, G.pleatedSkirt, G.blackLoafers, G.waistBelt] },
+  { id: "look-blazer-dress", title: "Blazer dress", wardrobe: "womenswear", items: [G.blazerDress, G.blockHeels, G.tanTote] },
+  { id: "look-floral", title: "Floral day", wardrobe: "womenswear", items: [G.floralDress, G.sneakers] },
+  { id: "look-trench-flats", title: "Trench and flats", wardrobe: "womenswear", items: [G.whiteTee, G.straightJeans, G.flats, G.beltedTrench] },
+  { id: "look-blouse-jeans", title: "Blouse and jeans", wardrobe: "womenswear", items: [G.blackBlouse, G.blueJeans, G.ankleBoots, G.camelCoat] },
+  { id: "look-cropped-blazer", title: "Cropped blazer", wardrobe: "womenswear", items: [G.turtleneck, G.straightJeans, G.blackLoafers, G.croppedBlazer] },
+  { id: "look-shirt-dress", title: "Shirt dress", wardrobe: "womenswear", items: [G.shirtDress, G.sneakers, G.trench] },
+  { id: "look-cosy-errands", title: "Cosy errands", wardrobe: "womenswear", items: [G.cardigan, G.straightJeans, G.sneakers, G.tanTote] },
   { id: "look-office-classic", title: "Office classic", wardrobe: "both", items: [G.oxford, G.navyChinos, G.loafers, G.blazer] },
   { id: "look-monochrome", title: "All black", wardrobe: "both", items: [G.turtleneck, G.blackTrousers, G.ankleBoots] },
-  { id: "look-camel-navy", title: "Camel and navy", wardrobe: "both", items: [G.navyKnit, G.greyTrousers, G.brownBoots, G.camelCoat] },
   { id: "look-weekend", title: "Weekend easy", wardrobe: "both", items: [G.whiteTee, G.blueJeans, G.sneakers, G.field] },
-  { id: "look-smart-sneakers", title: "Smart with sneakers", wardrobe: "both", items: [G.blueShirt, G.beigeChinos, G.sneakers] },
-  { id: "look-leather", title: "Leather edge", wardrobe: "both", items: [G.blackTee, G.blackJeans, G.ankleBoots, G.leather] },
-  { id: "look-trench", title: "Trench season", wardrobe: "both", items: [G.stripedShirt, G.navyChinos, G.loafers, G.trench] },
-  { id: "look-grey-knit", title: "Soft neutrals", wardrobe: "both", items: [G.greyKnit, G.beigeChinos, G.sneakers] },
-  { id: "look-formal", title: "Boardroom", wardrobe: "menswear", items: [G.oxford, G.blackTrousers, G.oxfords, G.blackBelt] },
   { id: "look-athleisure", title: "Athleisure", wardrobe: "both", items: [G.hoodie, G.joggers, G.runners] },
-  { id: "look-midi", title: "Midi and heels", wardrobe: "womenswear", items: [G.midiDress, G.heels, G.tote] },
-  { id: "look-shirt-dress", title: "Shirt dress", wardrobe: "womenswear", items: [G.shirtDress, G.sneakers, G.trench] },
-  { id: "look-silk-pencil", title: "Silk and pencil skirt", wardrobe: "womenswear", items: [G.silkBlouse, G.pencilSkirt, G.heels] },
-  { id: "look-floral", title: "Floral day", wardrobe: "womenswear", items: [G.floralDress, G.sneakers] },
-  { id: "look-blouse-jeans", title: "Blouse and jeans", wardrobe: "womenswear", items: [G.blackBlouse, G.blueJeans, G.ankleBoots, G.camelCoat] },
-  { id: "look-scarf", title: "Winter layers", wardrobe: "both", items: [G.turtleneck, G.greyTrousers, G.ankleBoots, G.camelCoat, G.scarf] },
-  { id: "look-blue-on-blue", title: "Blue on blue", wardrobe: "both", items: [G.blueShirt, G.blueJeans, G.loafers, G.brownBelt] },
-  { id: "look-knit-jeans", title: "Knit and jeans", wardrobe: "both", items: [G.navyKnit, G.blueJeans, G.sneakers] },
+  { id: "look-formal", title: "Boardroom", wardrobe: "menswear", items: [G.oxford, G.blackTrousers, G.oxfords, G.blackBelt] },
   { id: "look-evening-black", title: "Evening black", wardrobe: "menswear", items: [G.blackTee, G.blackTrousers, G.oxfords, G.blazer] },
-  { id: "look-watch", title: "Clean and watch", wardrobe: "both", items: [G.oxford, G.greyTrousers, G.loafers, G.watch] },
 ];
 
 /** Looks for a wardrobe (`both` sees all; menswear / womenswear skip the other's looks). */
