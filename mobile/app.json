@@ -30,7 +30,15 @@
           "faceIDPermission": false
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Flick uses your photos to add your own clothes to your closet.",
+          "cameraPermission": "Flick uses the camera to photograph your clothes for your closet.",
+          "microphonePermission": false
+        }
+      ]
     ]
   }
 }
