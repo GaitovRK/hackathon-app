@@ -66,7 +66,8 @@ export async function bootTestApp(): Promise<TestApp> {
     upload: jest.fn(async () => 'https://fal.example/original.jpg'),
     run: jest.fn(async (endpoint: string) => {
       if (endpoint === 'fal-ai/birefnet/v2') return { image: { url: 'https://fal.example/cutout.png' } };
-      return { output: '{"category":"top","subcategory":"shirt","name":"Blue shirt","primaryColor":"blue","pattern":"solid","formality":3,"warmth":2,"seasons":["spring"],"occasions":["work"]}' };
+      if (endpoint === 'fal-ai/nano-banana/edit') return { images: [{ url: 'https://fal.example/flatlay.png' }], description: '' };
+      return { output: '{"garments":[{"category":"top","subcategory":"shirt","name":"Blue shirt","description":"light blue cotton shirt","primaryColor":"blue","pattern":"solid","formality":3,"warmth":2,"seasons":["spring"],"occasions":["work"]}]}' };
     }),
   };
   const mod = await Test.createTestingModule({ imports: [AppModule] }).overrideProvider(FalService).useValue(fal).compile();

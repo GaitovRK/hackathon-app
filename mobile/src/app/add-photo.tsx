@@ -16,7 +16,10 @@ import { CATEGORIES, GARMENT_COLORS, type GarmentColor, type Item, type ItemCate
 import { usePatchItemMutation } from "@/store/api";
 import { displayStyle, useTheme } from "@/theme/useTheme";
 
-/** Add your own clothes (#21): take / choose a photo → server cuts it out + tags it → result card with quick fixes. */
+/**
+ * Add your own clothes (#21, #34): take / choose any photo (on you, on a hanger, flat) → the server finds every garment,
+ * renders a flat-lay cutout per garment and tags it → one result card per item with quick fixes.
+ */
 export default function AddPhotoScreen() {
   const { colors, spacing, fontSize, fontFamily, radius } = useTheme();
   const { state, pick, retry, reset, updateItem } = useAddPhoto();
@@ -40,7 +43,7 @@ export default function AddPhotoScreen() {
       {state.step === "processing" ? (
         <View testID="add-photo-processing" style={[styles.processing, { backgroundColor: colors.lilac2, borderRadius: radius.card, padding: spacing.xl, gap: spacing.md }]}>
           <ActivityIndicator color={colors.ink} size="large" />
-          <Text style={displayStyle(fontSize.xl + 7, colors.ink)}>{t(state.phase === "cutting" ? "addPhoto.cutting" : "addPhoto.tagging")}</Text>
+          <Text style={displayStyle(fontSize.xl + 7, colors.ink)}>{t(state.phase === "finding" ? "addPhoto.finding" : "addPhoto.rendering")}</Text>
           <Text style={{ color: colors.ink2, fontSize: fontSize.sm, fontFamily: fontFamily.body }}>{t("addPhoto.processingHint")}</Text>
         </View>
       ) : null}
@@ -54,15 +57,28 @@ export default function AddPhotoScreen() {
         </View>
       ) : null}
 
-      {state.step === "result" ? <ResultCard key={state.item.id} item={state.item} tagged={state.tagged} onSaved={updateItem} onAddAnother={reset} /> : null}
+      {state.step === "result" ? (
+        <View testID="add-photo-result" style={{ gap: spacing.lg }}>
+          {state.items.length > 1 ? (
+            <Text accessibilityRole="header" testID="add-photo-result-title" style={displayStyle(fontSize.xxl, colors.ink)}>
+              {t("addPhoto.addedMany", { count: state.items.length })}
+            </Text>
+          ) : null}
+          {state.items.map((item) => (
+            <ResultCard key={item.id} item={item} tagged={state.tagged} onSaved={updateItem} />
+          ))}
+          <ButtonSecondary testID="add-photo-another" label={t("addPhoto.addAnother")} onPress={reset} />
+          <ButtonPrimary testID="add-photo-done" label={t("addPhoto.done")} onPress={() => router.replace("/closet")} />
+        </View>
+      ) : null}
     </Screen>
   );
 }
 
-type ResultProps = { item: Item; tagged: boolean; onSaved: (item: Item) => void; onAddAnother: () => void };
+type ResultProps = { item: Item; tagged: boolean; onSaved: (item: Item) => void };
 
-/** The cutout on a mist tile + name, category and colour; "Looks wrong? Fix it" edits inline and PATCHes. */
-function ResultCard({ item, tagged, onSaved, onAddAnother }: ResultProps) {
+/** One new item: the flat-lay cutout on a mist tile + name, category and colour; "Looks wrong? Fix it" edits inline and PATCHes. */
+function ResultCard({ item, tagged, onSaved }: ResultProps) {
   const { colors, spacing, fontSize, fontFamily, radius } = useTheme();
   const [patchItem, { isLoading: saving }] = usePatchItemMutation();
   const [editing, setEditing] = useState(!tagged);
@@ -80,10 +96,10 @@ function ResultCard({ item, tagged, onSaved, onAddAnother }: ResultProps) {
   };
 
   return (
-    <View testID="add-photo-result" style={{ gap: spacing.lg }}>
+    <View testID={`add-photo-item-${item.id}`} style={{ gap: spacing.lg }}>
       <View style={[styles.center, { backgroundColor: colors.mist, borderRadius: radius.card, padding: spacing.lg, gap: spacing.sm }]}>
         <ItemTile garment={{ ...item, name, category, primaryColor }} size={200} />
-        <Text testID="add-photo-name" style={displayStyle(fontSize.xl + 7, colors.ink)}>
+        <Text testID={`add-photo-name-${item.id}`} style={displayStyle(fontSize.xl + 7, colors.ink)}>
           {name}
         </Text>
         <Text style={{ color: colors.ink2, fontSize: fontSize.sm, fontFamily: fontFamily.bodySemibold }}>
@@ -92,22 +108,19 @@ function ResultCard({ item, tagged, onSaved, onAddAnother }: ResultProps) {
       </View>
 
       {editing ? (
-        <View testID="add-photo-edit" style={{ gap: spacing.md }}>
+        <View testID={`add-photo-edit-${item.id}`} style={{ gap: spacing.md }}>
           {tagged ? null : <StatusMessage kind="info" message={t("addPhoto.untagged")} />}
           {section("closet.name")}
-          <TextField testID="add-photo-edit-name" value={name} onChangeText={setName} placeholder={t("closet.name")} />
+          <TextField testID={`add-photo-edit-name-${item.id}`} value={name} onChangeText={setName} placeholder={t("closet.name")} />
           {section("addPhoto.category")}
-          <ChipRow testID="add-photo-category" options={CATEGORIES.map((c) => ({ value: c, label: t(`category.${c}` as MessageKey) }))} value={category} onChange={setCategory} />
+          <ChipRow testID={`add-photo-category-${item.id}`} options={CATEGORIES.map((c) => ({ value: c, label: t(`category.${c}` as MessageKey) }))} value={category} onChange={setCategory} />
           {section("closet.color")}
-          <ChipRow testID="add-photo-color" options={GARMENT_COLORS.map((c) => ({ value: c, label: t(`color.${c}` as MessageKey) }))} value={primaryColor} onChange={setPrimaryColor} />
-          <ButtonPrimary testID="add-photo-save" label={t("addPhoto.save")} loading={saving} onPress={() => void save()} />
+          <ChipRow testID={`add-photo-color-${item.id}`} options={GARMENT_COLORS.map((c) => ({ value: c, label: t(`color.${c}` as MessageKey) }))} value={primaryColor} onChange={setPrimaryColor} />
+          <ButtonPrimary testID={`add-photo-save-${item.id}`} label={t("addPhoto.save")} loading={saving} onPress={() => void save()} />
         </View>
       ) : (
-        <ButtonSecondary testID="add-photo-fix" label={t("addPhoto.fixIt")} onPress={() => setEditing(true)} />
+        <ButtonSecondary testID={`add-photo-fix-${item.id}`} label={t("addPhoto.fixIt")} onPress={() => setEditing(true)} />
       )}
-
-      <ButtonSecondary testID="add-photo-another" label={t("addPhoto.addAnother")} onPress={onAddAnother} />
-      <ButtonPrimary testID="add-photo-done" label={t("addPhoto.done")} onPress={() => router.replace("/closet")} />
     </View>
   );
 }

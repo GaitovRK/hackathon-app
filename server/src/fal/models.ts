@@ -40,6 +40,22 @@ export const MODELS: Record<string, ModelDef> = {
       })
       .strict(),
   },
+  /**
+   * Image edit (Gemini 2.5 Flash Image) used to render one garment from a photo as a flat-lay product shot:
+   * `{ prompt, image_urls }` → `{ images: [{ url }], description }`.
+   */
+  'nano-banana-edit': {
+    endpoint: 'fal-ai/nano-banana/edit',
+    input: z
+      .object({
+        prompt: z.string().min(1).max(2000),
+        image_urls: z.array(z.string().url()).min(1).max(4),
+        num_images: z.number().int().min(1).max(1).optional(),
+        aspect_ratio: z.enum(['auto', '1:1', '3:4', '4:3', '4:5', '5:4', '2:3', '3:2']).optional(),
+        output_format: z.enum(['jpeg', 'png', 'webp']).optional(),
+      })
+      .strict(),
+  },
   'flux-schnell': {
     endpoint: 'fal-ai/flux/schnell',
     input: z
