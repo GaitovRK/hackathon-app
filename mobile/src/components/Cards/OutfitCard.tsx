@@ -7,6 +7,9 @@ import { t } from "@/i18n/t";
 import type { FeedbackValue, Outfit } from "@/services/api/types";
 import { reasonStyle, useTheme } from "@/theme/useTheme";
 
+/** Flat-lay width as a share of the card: fills the card height below the badge row. */
+const FLAT_LAY_SHARE = 0.74;
+
 type Props = {
   outfit: Outfit;
   onWear?: () => void;
@@ -35,7 +38,7 @@ export function OutfitCard({ outfit, onWear, onSave, onFeedback, feedback = null
       <View
         style={[
           styles.card,
-          { height: Math.round(width * 1.24), borderRadius: radius.card - 2, backgroundColor: colors.paper, borderWidth: liked ? block.selectedBorder : block.cardBorder, borderColor: liked ? colors.ink : colors.line },
+          { height: Math.round(width * 1.24), paddingBottom: spacing.sm, borderRadius: radius.card - 2, backgroundColor: colors.paper, borderWidth: liked ? block.selectedBorder : block.cardBorder, borderColor: liked ? colors.ink : colors.line },
         ]}
       >
         {badge ? (
@@ -55,7 +58,7 @@ export function OutfitCard({ outfit, onWear, onSave, onFeedback, feedback = null
             icon={<Icon name="heart" size={16} filled={liked} />}
           />
         </View>
-        <OutfitFlatLay garments={outfit.items.map((i) => i.item)} width={Math.round(width * 0.62)} />
+        <OutfitFlatLay garments={outfit.items.map((i) => i.item)} width={Math.round(width * FLAT_LAY_SHARE)} />
       </View>
       <Text style={reasonStyle(fontSize.xl, colors.ink)}>{outfit.reason}</Text>
       <Text numberOfLines={1} style={{ color: colors.ink2, fontSize: fontSize.xs, fontFamily: fontFamily.body }}>
@@ -91,7 +94,7 @@ export function OutfitCard({ outfit, onWear, onSave, onFeedback, feedback = null
 }
 
 const styles = StyleSheet.create({
-  card: { alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  card: { alignItems: "center", justifyContent: "flex-end", overflow: "hidden" },
   pill: { position: "absolute", height: 26, paddingHorizontal: 10, justifyContent: "center", zIndex: 9 },
   badge: { position: "absolute", zIndex: 9 },
   row: { flexDirection: "row", alignItems: "center" },
