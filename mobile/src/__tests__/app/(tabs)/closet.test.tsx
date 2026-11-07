@@ -6,7 +6,7 @@ import type { Item, MeResponse } from "@/services/api/types";
 import { makeStore, type AppStore } from "@/store";
 import { api } from "@/store/api";
 import { sessionReady } from "@/store/sessionSlice";
-import ClosetScreen from "./closet";
+import ClosetScreen from "@/app/(tabs)/closet";
 
 jest.mock("expo-router", () => ({ router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() } }));
 
