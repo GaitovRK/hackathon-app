@@ -4,7 +4,7 @@
 
 **Job:** the user adds photos of their own clothes, the app turns them into a tagged digital closet, and every morning it suggests 3 complete outfits as flat-lay collages, chosen the way the user would pick.
 
-**First users:** busy professionals (any gender) asking "what do I wear to work?". English only, iOS first, Android kept possible.
+**First users:** women first (busy professionals asking "what do I wear to work?"), then men. Womenswear leads the starter catalog, swipe looks, examples and marketing; menswear stays fully supported. English only, iOS first, Android kept possible.
 
 **Key metric:** time-to-first-outfit. A new user sees 3 outfits within 60 s, with zero photos (starter closet).
 
