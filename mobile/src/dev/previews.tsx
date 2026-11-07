@@ -4,6 +4,7 @@ import { ButtonPrimary } from "@/components/Buttons/ButtonPrimary";
 import { ButtonSecondary } from "@/components/Buttons/ButtonSecondary";
 import { LookCard } from "@/components/Cards/LookCard";
 import { OutfitCard } from "@/components/Cards/OutfitCard";
+import { ClosetView } from "@/components/Closet/ClosetView";
 import { ChipRow } from "@/components/Chips/ChipRow";
 import { ItemTile } from "@/components/Items/ItemTile";
 import { IdeasGrid } from "@/components/Ideas/IdeasGrid";
@@ -42,6 +43,17 @@ export const mockItems: Item[] = [
   item("i7", "Silver watch", "accessory", "watch", "grey"),
   item("i8", "White sneakers", "shoes", "sneakers", "white"),
 ];
+
+/** Closet previews + tests: a women-first closet with distinct `createdAt`s (newest last). */
+export const closetMockItems: Item[] = [
+  ...mockItems,
+  item("i9", "Blush tie blouse", "top", "blouse", "pink"),
+  item("i10", "Black midi skirt", "bottom", "skirt", "black"),
+  item("i11", "Black ballet flats", "shoes", "flats", "black"),
+  item("i12", "Tan leather tote", "accessory", "tote", "camel"),
+  item("i13", "Grey merino knit", "top", "knit", "grey"),
+  item("i14", "Straight blue jeans", "bottom", "jeans", "blue"),
+].map((i, n) => ({ ...i, createdAt: new Date(Date.UTC(2026, 10, 1, 0, n)).toISOString() }));
 
 export const mockOutfit: Outfit = {
   id: "o1",
@@ -117,4 +129,10 @@ export const previews: Preview[] = [
       </View>
     ),
   },
+  {
+    title: "Closet — wardrobe grid, 3 new to check",
+    render: () => <ClosetView items={closetMockItems} itemCount={closetMockItems.length} itemLimit={50} toCheckCount={3} onOpenItem={() => undefined} onAddBasics={() => undefined} onCheckNew={() => undefined} />,
+  },
+  { title: "Closet — Pro (unlimited)", render: () => <ClosetView items={closetMockItems} itemCount={closetMockItems.length} itemLimit={null} toCheckCount={0} onOpenItem={() => undefined} onAddBasics={() => undefined} /> },
+  { title: "Closet — empty", render: () => <ClosetView items={[]} itemCount={0} itemLimit={50} toCheckCount={0} onOpenItem={() => undefined} onAddBasics={() => undefined} /> },
 ];
