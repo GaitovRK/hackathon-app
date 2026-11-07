@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { useState } from "react";
 import { ButtonPrimary } from "@/components/Buttons/ButtonPrimary";
 import { ButtonSecondary, ButtonVolt } from "@/components/Buttons/ButtonSecondary";
@@ -22,7 +22,8 @@ import { displayStyle, useTheme } from "@/theme/useTheme";
 const occasionLabel = (o: Occasion) => t(`occasion.${o}` as MessageKey);
 /** Work first (OCCASIONS starts with work). */
 const occasionOptions = OCCASIONS.map((o) => ({ value: o, label: occasionLabel(o) }));
-const CARD_WIDTH = 256;
+/** How much of the next outfit card peeks in from the right. */
+const CARD_PEEK = 36;
 const SETUP_STEPS = 4;
 const PHOTOS_GOAL = 3;
 
@@ -33,6 +34,7 @@ const PHOTOS_GOAL = 3;
 export default function TodayScreen() {
   const { colors, spacing, fontSize, fontFamily, radius } = useTheme();
   const [occasion, setOccasion] = useState<Occasion>("work");
+  const cardWidth = useWindowDimensions().width - spacing.gutter * 2 - CARD_PEEK;
   const today = useToday(occasion);
   const ready = useAppSelector((s) => s.session.status === "ready");
   const me = useMeQuery(undefined, { skip: !ready });
@@ -102,7 +104,7 @@ export default function TodayScreen() {
           testID="outfit-stack"
           horizontal
           showsHorizontalScrollIndicator={false}
-          snapToInterval={CARD_WIDTH + spacing.md}
+          snapToInterval={cardWidth + spacing.md}
           decelerationRate="fast"
           style={{ marginHorizontal: -spacing.gutter }}
           contentContainerStyle={{ paddingHorizontal: spacing.gutter, gap: spacing.md }}
@@ -111,7 +113,7 @@ export default function TodayScreen() {
             <OutfitCard
               key={o.id}
               outfit={o}
-              width={CARD_WIDTH}
+              width={cardWidth}
               badge={t("home.badge", { index: String(i + 1).padStart(2, "0"), occasion: occasionLabel(occasion) })}
               busy={today.busy}
               feedback={today.feedback[o.id] ?? null}

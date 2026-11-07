@@ -1,11 +1,16 @@
-import { StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ButtonPrimary } from "@/components/Buttons/ButtonPrimary";
 import { IconButton } from "@/components/Buttons/IconButton";
 import { Icon } from "@/components/Icons/Icon";
 import { OutfitFlatLay } from "@/components/Outfit/OutfitFlatLay";
+import { OutfitFullScreen } from "@/components/Outfit/OutfitFullScreen";
 import { t } from "@/i18n/t";
 import type { FeedbackValue, Outfit } from "@/services/api/types";
 import { reasonStyle, useTheme } from "@/theme/useTheme";
+
+/** Flat-lay width as a share of the card: fills the card height below the badge row. */
+const FLAT_LAY_SHARE = 0.74;
 
 type Props = {
   outfit: Outfit;
@@ -21,7 +26,8 @@ type Props = {
 
 /**
  * One suggested outfit (board `.ocard`): white card with a hairline, the layered flat-lay, a heart badge
- * (like, lilac when on), the italic serif reason line, then Wear today / Not for me / Save.
+ * (like, lilac when on), the italic serif reason line, then Wear today / Not for me / Save. Tapping the flat-lay opens it
+ * full screen.
  */
 export function OutfitCard({ outfit, onWear, onSave, onFeedback, feedback = null, busy = false, width = 256, badge }: Props) {
   const { colors, radius, spacing, fontSize, fontFamily, block } = useTheme();
@@ -29,13 +35,15 @@ export function OutfitCard({ outfit, onWear, onSave, onFeedback, feedback = null
   const disliked = feedback === "dislike";
   const worn = outfit.status === "worn";
   const saved = outfit.status === "saved";
+  const [fullScreen, setFullScreen] = useState(false);
+  const garments = outfit.items.map((i) => i.item);
 
   return (
     <View testID={`outfit-${outfit.id}`} style={{ width, gap: spacing.sm + 2 }}>
       <View
         style={[
           styles.card,
-          { height: Math.round(width * 1.24), borderRadius: radius.card - 2, backgroundColor: colors.paper, borderWidth: liked ? block.selectedBorder : block.cardBorder, borderColor: liked ? colors.ink : colors.line },
+          { height: Math.round(width * 1.24), paddingBottom: spacing.sm, borderRadius: radius.card - 2, backgroundColor: colors.paper, borderWidth: liked ? block.selectedBorder : block.cardBorder, borderColor: liked ? colors.ink : colors.line },
         ]}
       >
         {badge ? (
@@ -55,8 +63,11 @@ export function OutfitCard({ outfit, onWear, onSave, onFeedback, feedback = null
             icon={<Icon name="heart" size={16} filled={liked} />}
           />
         </View>
-        <OutfitFlatLay garments={outfit.items.map((i) => i.item)} width={Math.round(width * 0.62)} />
+        <Pressable testID={`open-outfit-${outfit.id}`} accessibilityRole="button" accessibilityLabel={t("today.viewOutfit")} onPress={() => setFullScreen(true)}>
+          <OutfitFlatLay garments={garments} width={Math.round(width * FLAT_LAY_SHARE)} />
+        </Pressable>
       </View>
+      {fullScreen ? <OutfitFullScreen garments={garments} reason={outfit.reason} onClose={() => setFullScreen(false)} /> : null}
       <Text style={reasonStyle(fontSize.xl, colors.ink)}>{outfit.reason}</Text>
       <Text numberOfLines={1} style={{ color: colors.ink2, fontSize: fontSize.xs, fontFamily: fontFamily.body }}>
         {outfit.items.map((i) => i.item.name).join(" · ")}
@@ -91,7 +102,7 @@ export function OutfitCard({ outfit, onWear, onSave, onFeedback, feedback = null
 }
 
 const styles = StyleSheet.create({
-  card: { alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  card: { alignItems: "center", justifyContent: "flex-end", overflow: "hidden" },
   pill: { position: "absolute", height: 26, paddingHorizontal: 10, justifyContent: "center", zIndex: 9 },
   badge: { position: "absolute", zIndex: 9 },
   row: { flexDirection: "row", alignItems: "center" },

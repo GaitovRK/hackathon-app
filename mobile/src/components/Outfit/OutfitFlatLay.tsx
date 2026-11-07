@@ -17,7 +17,7 @@ const SLOTS = {
   top: { left: 16, top: 2, width: 68, height: 40, z: 3 },
   bottom: { left: 27, top: 37, width: 46, height: 50, z: 2 },
   belt: { left: 31, top: 39.6, width: 38, height: 4, z: 4 },
-  shoes: { left: 22, top: 82, width: 56, height: 16, z: 5 },
+  shoes: { left: 18, top: 78, width: 64, height: 21, z: 5 },
   acc: { left: 63, top: 45, width: 30, height: 22, z: 6 },
   dress: { left: 22, top: 2, width: 56, height: 82, z: 2 },
 } satisfies Record<string, Slot>;
