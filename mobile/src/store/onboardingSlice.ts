@@ -23,7 +23,7 @@ export const initialOnboardingState: OnboardingState = {
   swipes: [],
   dressCode: "smart_casual",
   city: "",
-  wardrobe: "both",
+  wardrobe: "womenswear",
   selectedStarterKeys: [],
   firstWowShown: false,
 };
