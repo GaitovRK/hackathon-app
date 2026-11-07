@@ -1,4 +1,4 @@
-import { BadGatewayException, BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadGatewayException, BadRequestException, Injectable, Logger, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import type { Item } from '@prisma/client';
 import { z } from 'zod';
 import { QuotaService } from '../billing/quota.service';
@@ -6,7 +6,7 @@ import { FalService } from '../fal/fal.service';
 import { getModel } from '../fal/models';
 import { PrismaService } from '../prisma/prisma.service';
 import { getStarterItem } from '../starter-catalog/catalog';
-import { COLORS, ITEM_CATEGORIES, parsePhotoTags, TAGGING_PROMPT, TAGGING_SYSTEM_PROMPT } from './photo-tags';
+import { buildFlatLayPrompt, COLORS, ITEM_CATEGORIES, parsePhotoGarments, type ParsedPhotoGarments, type PhotoGarment, TAGGING_PROMPT, TAGGING_SYSTEM_PROMPT } from './photo-tags';
 
 export const PHOTO_MIME_TYPES = ['image/jpeg', 'image/png', 'image/heic', 'image/webp'] as const;
 export const PHOTO_MAX_BYTES = 20 * 1024 * 1024;
@@ -17,13 +17,20 @@ export interface UploadedPhoto {
   size: number;
 }
 
+/** One item per garment found in the photo; `tagged: false` = vision failed, one default item. */
 export interface PhotoItemResult {
-  item: Item;
+  items: Item[];
   tagged: boolean;
 }
 
 const cutoutResultSchema = z.object({ image: z.object({ url: z.string().url() }) });
 const visionResultSchema = z.object({ output: z.string() });
+const editResultSchema = z.object({ images: z.array(z.object({ url: z.string().url() })).min(1) });
+
+/** Per-call fal timeouts; the whole request has to stay well under the phone's ~60 s network timeout. */
+const TAGGING_TIMEOUT_MS = 15_000;
+const FLAT_LAY_TIMEOUT_MS = 25_000;
+const CUTOUT_TIMEOUT_MS = 12_000;
 
 export const addStarterSchema = z.object({ starterKeys: z.array(z.string().min(1).max(64)).min(1).max(100) });
 
@@ -99,9 +106,10 @@ export class ItemsService {
   }
 
   /**
-   * Photo item: item-limit check → SourcePhoto → fal storage upload → background removal (birefnet) →
-   * vision auto-tag (defaults + `tagged: false` on any tagging failure) → Item (source `photo`).
-   * Cutout failure: SourcePhoto `failed` + 502 PHOTO_PROCESSING_FAILED.
+   * Photo items: item-limit check → SourcePhoto → fal storage upload → vision lists the garments (max 4; none → 422
+   * NOT_CLOTHING; failure → one default garment, `tagged: false`) → item-limit check for that many → per garment, in
+   * parallel: image-edit flat-lay of just that garment → background removal → transparent cutout (generation failure →
+   * cutout of the original) → one Item per garment in one transaction. Every cutout failing: 502 PHOTO_PROCESSING_FAILED.
    */
   async addFromPhoto(userId: string, photo: UploadedPhoto | undefined): Promise<PhotoItemResult> {
     if (!photo || !(PHOTO_MIME_TYPES as readonly string[]).includes(photo.mimetype) || photo.size > PHOTO_MAX_BYTES || photo.size === 0) {
@@ -110,46 +118,65 @@ export class ItemsService {
     await this.quota.assertCanAddItems(userId, 1);
 
     const sourcePhoto = await this.prisma.sourcePhoto.create({ data: { userId, url: '', status: 'uploaded' } });
+    const fail = async (error: string, exception: Error): Promise<never> => {
+      await this.prisma.sourcePhoto.update({ where: { id: sourcePhoto.id }, data: { status: 'failed', error } });
+      throw exception;
+    };
+
     let originalUrl: string;
-    let cutoutUrl: string;
     try {
       originalUrl = await this.fal.upload(photo.buffer, photo.mimetype);
       await this.prisma.sourcePhoto.update({ where: { id: sourcePhoto.id }, data: { url: originalUrl, status: 'processing' } });
-      const cutout = getModel('birefnet-v2')!;
-      const result = await this.fal.run(cutout.endpoint, cutout.input.parse({ image_url: originalUrl, output_format: 'png' }));
-      cutoutUrl = cutoutResultSchema.parse(result).image.url;
     } catch (e) {
-      this.logger.warn(`photo cutout failed for sourcePhoto ${sourcePhoto.id} (${(e as Error).name})`);
-      await this.prisma.sourcePhoto.update({ where: { id: sourcePhoto.id }, data: { status: 'failed', error: 'Background removal failed' } });
-      throw new BadGatewayException({ code: 'PHOTO_PROCESSING_FAILED', message: 'We could not process that photo. Try another one.' });
+      this.logger.warn(`photo upload failed for sourcePhoto ${sourcePhoto.id} (${(e as Error).name})`);
+      return fail('Upload failed', new BadGatewayException({ code: 'PHOTO_PROCESSING_FAILED', message: 'We could not process that photo. Try another one.' }));
     }
 
-    const { tagged, tags } = await this.tagPhoto(originalUrl, sourcePhoto.id);
-    const [item] = await this.prisma.$transaction([
-      this.prisma.item.create({
-        data: {
-          userId,
-          source: 'photo',
-          category: tags.category,
-          subcategory: tags.subcategory,
-          name: tags.name,
-          primaryColor: tags.primaryColor,
-          secondaryColor: tags.secondaryColor ?? null,
-          pattern: tags.pattern,
-          formality: tags.formality,
-          warmth: tags.warmth,
-          seasons: tags.seasons,
-          occasions: tags.occasions,
-          imageUrl: cutoutUrl,
-          sourcePhotoId: sourcePhoto.id,
-        },
-      }),
+    const { tagged, garments } = await this.tagPhoto(originalUrl, sourcePhoto.id);
+    if (garments.length === 0) {
+      return fail('No clothing found', new UnprocessableEntityException({ code: 'NOT_CLOTHING', message: 'We could not find any clothes in that photo.' }));
+    }
+    if (garments.length > 1) {
+      try {
+        await this.quota.assertCanAddItems(userId, garments.length);
+      } catch (e) {
+        return fail('Item limit reached', e as Error);
+      }
+    }
+
+    const images = await Promise.all(garments.map((g) => this.renderCutout(originalUrl, g, sourcePhoto.id)));
+    const ready = garments.flatMap((g, i) => (images[i] ? [{ garment: g, imageUrl: images[i] }] : []));
+    if (ready.length === 0) {
+      return fail('Background removal failed', new BadGatewayException({ code: 'PHOTO_PROCESSING_FAILED', message: 'We could not process that photo. Try another one.' }));
+    }
+
+    const results = await this.prisma.$transaction([
+      ...ready.map(({ garment, imageUrl }) =>
+        this.prisma.item.create({
+          data: {
+            userId,
+            source: 'photo',
+            category: garment.category,
+            subcategory: garment.subcategory,
+            name: garment.name,
+            primaryColor: garment.primaryColor,
+            secondaryColor: garment.secondaryColor ?? null,
+            pattern: garment.pattern,
+            formality: garment.formality,
+            warmth: garment.warmth,
+            seasons: garment.seasons,
+            occasions: garment.occasions,
+            imageUrl,
+            sourcePhotoId: sourcePhoto.id,
+          },
+        }),
+      ),
       this.prisma.sourcePhoto.update({ where: { id: sourcePhoto.id }, data: { status: 'tagged' } }),
     ]);
-    return { item, tagged };
+    return { items: results.slice(0, ready.length) as Item[], tagged };
   }
 
-  private async tagPhoto(imageUrl: string, sourcePhotoId: string): Promise<ReturnType<typeof parsePhotoTags>> {
+  private async tagPhoto(imageUrl: string, sourcePhotoId: string): Promise<ParsedPhotoGarments> {
     try {
       const vision = getModel('vision-tagger')!;
       const input = vision.input.parse({
@@ -158,13 +185,42 @@ export class ItemsService {
         model: 'google/gemini-2.5-flash-lite',
         image_urls: [imageUrl],
         temperature: 0,
-        max_tokens: 400,
+        max_tokens: 1200,
       });
-      const result = await this.fal.run(vision.endpoint, input, 30_000);
-      return parsePhotoTags(visionResultSchema.parse(result).output);
+      const result = await this.fal.run(vision.endpoint, input, TAGGING_TIMEOUT_MS);
+      return parsePhotoGarments(visionResultSchema.parse(result).output);
     } catch (e) {
       this.logger.warn(`photo tagging failed for sourcePhoto ${sourcePhotoId} (${(e as Error).name})`);
-      return parsePhotoTags(null);
+      return parsePhotoGarments(null);
+    }
+  }
+
+  /**
+   * Flat-lay render of one garment (reference = the original photo) → background removal. Generation failure falls
+   * back to cutting out the original; returns null only when no cutout could be made.
+   */
+  private async renderCutout(originalUrl: string, garment: PhotoGarment, sourcePhotoId: string): Promise<string | null> {
+    let flatLayUrl: string | null = null;
+    try {
+      const edit = getModel('nano-banana-edit')!;
+      const input = edit.input.parse({ prompt: buildFlatLayPrompt(garment.description), image_urls: [originalUrl], num_images: 1, aspect_ratio: '1:1', output_format: 'png' });
+      flatLayUrl = editResultSchema.parse(await this.fal.run(edit.endpoint, input, FLAT_LAY_TIMEOUT_MS)).images[0].url;
+    } catch (e) {
+      this.logger.warn(`flat-lay generation failed for sourcePhoto ${sourcePhotoId} (${(e as Error).name})`);
+    }
+    const cutout = await this.cutout(flatLayUrl ?? originalUrl, sourcePhotoId);
+    if (cutout || !flatLayUrl) return cutout;
+    return this.cutout(originalUrl, sourcePhotoId);
+  }
+
+  private async cutout(imageUrl: string, sourcePhotoId: string): Promise<string | null> {
+    try {
+      const model = getModel('birefnet-v2')!;
+      const result = await this.fal.run(model.endpoint, model.input.parse({ image_url: imageUrl, output_format: 'png' }), CUTOUT_TIMEOUT_MS);
+      return cutoutResultSchema.parse(result).image.url;
+    } catch (e) {
+      this.logger.warn(`photo cutout failed for sourcePhoto ${sourcePhotoId} (${(e as Error).name})`);
+      return null;
     }
   }
 
