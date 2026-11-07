@@ -6,8 +6,8 @@ import type { StarterItem } from "@/services/api/types";
 import { makeStore, type AppStore } from "@/store";
 import { api } from "@/store/api";
 import { sessionReady } from "@/store/sessionSlice";
-import StarterClosetScreen from "./closet";
-import SwipeScreen from "./swipe";
+import StarterClosetScreen from "@/app/onboarding/closet";
+import SwipeScreen from "@/app/onboarding/swipe";
 
 jest.mock("expo-router", () => ({ router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() }, useLocalSearchParams: () => ({}) }));
 

@@ -4,7 +4,7 @@ import { mockOutfit } from "@/dev/previews";
 import { makeStore, type AppStore } from "@/store";
 import { api } from "@/store/api";
 import { sessionReady } from "@/store/sessionSlice";
-import TodayScreen from "./index";
+import TodayScreen from "@/app/(tabs)/index";
 
 jest.mock("expo-router", () => ({ router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() } }));
 jest.mock("@/services/purchases/presentPaywall", () => ({ presentPaywall: jest.fn(async () => false), setPaywallUnlockedHandler: jest.fn() }));
