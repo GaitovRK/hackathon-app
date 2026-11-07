@@ -3,7 +3,7 @@ import { useTheme } from "@/theme/useTheme";
 
 /** Themed multi-purpose text input. */
 export function TextField(props: TextInputProps) {
-  const { colors, radius, spacing, fontSize } = useTheme();
+  const { colors, radius, spacing, fontSize, fontFamily } = useTheme();
   return (
     <TextInput
       placeholderTextColor={colors.muted}
@@ -12,11 +12,11 @@ export function TextField(props: TextInputProps) {
         styles.input,
         {
           color: colors.foreground,
-          backgroundColor: colors.surface,
-          borderColor: colors.border,
+          backgroundColor: colors.mist,
+          borderColor: colors.line,
           borderRadius: radius.md,
           padding: spacing.md,
-          fontSize: fontSize.md,
+          fontSize: fontSize.md, fontFamily: fontFamily.body,
         },
         props.style,
       ]}

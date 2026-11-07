@@ -1,93 +1,121 @@
 /**
- * Design tokens for "Flick" (Color Block system, light theme only), taken from `docs/design/flick-board.html`.
- * The board values live only here: colors, type scale, radius, spacing, fonts, sticker + chunky-button
- * geometry, garment palette and block palette. Components read tokens through `useTheme()`; never
- * hard-code hex values in components. Rules summary: `docs/design-style.md`.
+ * Design tokens for "Flick" (Reference Direction board, light theme only), taken from
+ * `docs/design/flick-board.html`. Gallery-white screens, mist tiles, ink pills, one volt accent for every
+ * Pro / upsell moment and lilac for liked / AI / current step. Components read tokens through
+ * `useTheme()`; never hard-code hex values in components. Rules summary: `docs/design-style.md`.
+ *
+ * The older role names (accent, accentSoft, border, ...) are kept as aliases so existing components keep
+ * compiling; new code should prefer the board names (paper, mist, ink, volt, lilac, ...).
  */
+const board = {
+  paper: "#FFFFFF",
+  mist: "#F5F5F5",
+  chip: "#EBEBEB",
+  line: "#E5E5E5",
+  ink: "#141414",
+  ink2: "#6B6B6B",
+  ink3: "#A3A3A3",
+  volt: "#D4FF2A",
+  lilac: "#C9B6FB",
+  lilac2: "#EFE9FE",
+} as const;
+
 const light = {
-  /** --screen */
-  background: "#F6F6F3",
-  /** --surface */
-  surface: "#FFFFFF",
-  /** --soft */
-  surfaceAlt: "#ECEDF0",
-  /** --ink */
-  foreground: "#15171C",
-  /** --ink-2 */
-  muted: "#5C606B",
-  /** --edge: every chunky border and hard shadow */
-  border: "#15171C",
-  /** --line: quiet dividers and unselected tile borders */
-  borderSoft: "rgba(21,23,28,0.12)",
-  /** --accent */
-  accent: "#2E54E8",
-  accentForeground: "#FFFFFF",
-  /** --pop */
-  accentSoft: "#FFD23F",
-  /** --coral */
-  coral: "#FF6A4D",
-  /** --on-block */
-  onBlock: "#15171C",
-  /** Board blocks, used when an outfit has fewer colors than blocks. */
-  blockA: "#FFD23F",
-  blockB: "#A9C4FF",
-  blockC: "#FFC2B0",
-  blockD: "#A8D5B0",
-  danger: "#FF6A4D",
-  success: "#2E54E8",
-  warning: "#F2B35E",
-  like: "#2E54E8",
-  dislike: "#FF6A4D",
-  /** Die-cut sticker: white cut stroke, hard offset shadow, body + detail strokes. */
-  sticker: "#FFFFFF",
-  stickerShadow: "rgba(0,0,0,0.22)",
-  stickerBodyStroke: "rgba(0,0,0,0.16)",
-  stickerDetail: "rgba(0,0,0,0.28)",
-  stickerDetailLight: "rgba(255,255,255,0.35)",
-  tile: "#FFFFFF",
-  tileStroke: "rgba(0,0,0,0.16)",
+  ...board,
+  /** Screens and the outfit canvas. */
+  background: board.paper,
+  surface: board.paper,
+  /** Tiles, chips, secondary buttons, the tab tray. */
+  surfaceAlt: board.mist,
+  foreground: board.ink,
+  muted: board.ink2,
+  /** Selected outline (2px ink). */
+  border: board.ink,
+  /** Hairlines and card edges. */
+  borderSoft: board.line,
+  /** Primary action: the ink pill. */
+  accent: board.ink,
+  accentForeground: board.paper,
+  /** Pro / upsell highlight (volt). */
+  accentSoft: board.volt,
+  coral: "#E5484D",
+  onBlock: board.ink,
+  blockA: board.mist,
+  blockB: board.mist,
+  blockC: board.mist,
+  blockD: board.mist,
+  danger: "#D92D20",
+  success: board.ink,
+  warning: "#B54708",
+  like: board.lilac,
+  dislike: board.ink2,
+  /** Garment cutout strokes (flat cutouts on a mist tile, no die-cut sticker any more). */
+  sticker: "transparent",
+  stickerShadow: "transparent",
+  stickerBodyStroke: "rgba(0,0,0,0.10)",
+  stickerDetail: "rgba(0,0,0,0.24)",
+  stickerDetailLight: "rgba(255,255,255,0.2)",
+  tile: board.mist,
+  tileStroke: board.line,
+  /** Locked / ghost garment fill (Pro silhouettes). */
+  ghost: "#ECECEE",
 };
 
 export type Colors = typeof light;
 export const palettes = { light } as const;
 
-export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 40 } as const;
-/** --r-btn 16, --r-tile 18, --r-card 26 */
-export const radius = { sm: 6, md: 10, btn: 16, tile: 18, card: 26, full: 999 } as const;
-export const fontSize = { xs: 11.5, sm: 14, md: 15, lg: 17, xl: 22, xxl: 32, display: 44 } as const;
+/** 4-pt scale; 20 is the side gutter. */
+export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, gutter: 20, xl: 24, xxl: 32 } as const;
+/** 6 tag · 12 small tile · 16 tile · 24 card · pill for every button and chip. */
+export const radius = { sm: 6, md: 12, btn: 999, tile: 16, card: 24, full: 999 } as const;
+/** Figtree body 14-16, labels 13, headings 21; serif titles 34-40, reasons 24. */
+export const fontSize = { xs: 12, sm: 13, md: 15, lg: 16, xl: 21, xxl: 36, display: 40, reason: 24 } as const;
 export const fontWeight = { regular: "400", medium: "500", semibold: "600", bold: "700", black: "800" } as const;
-/** Display text: Bricolage 800, tight tracking and leading (board `.d`). */
-export const display = { letterSpacing: -0.025, lineHeight: 0.95 } as const;
+/** Serif display text (Instrument Serif 400): slightly tight tracking, tight leading. */
+export const display = { letterSpacing: -0.01, lineHeight: 1.0 } as const;
 
 /** Font families loaded by `useAppFonts()` (expo-google-fonts); names match `@expo-google-fonts/*` exports. */
 export const fontFamily = {
-  display: "BricolageGrotesque_800ExtraBold",
-  body: "Figtree_400Regular",
+  /** Instrument Serif: screen titles, big numbers. Once per screen. */
+  display: "InstrumentSerif_400Regular",
+  /** Instrument Serif italic: the reason line. */
+  displayItalic: "InstrumentSerif_400Regular_Italic",
+  body: "Figtree_500Medium",
   bodySemibold: "Figtree_600SemiBold",
-  bodyBold: "Figtree_800ExtraBold",
+  /** Buttons and headings. */
+  bodyBold: "Figtree_700Bold",
 } as const;
 
-/** Geometry of the Color Block system (board `.btn`, `.chip`, `.cc`, `.tile`, `.st`). */
+/** Component geometry (board `.btn`, `.chip`, `.ib`, `.tile`, tab bar). Flat: no borders or shadows except the 2px selected outline. */
 export const block = {
-  buttonHeight: 58,
-  buttonBorder: 2.5,
-  buttonShadowOffset: 5,
+  buttonHeight: 52,
+  buttonHeightSmall: 40,
+  buttonBorder: 0,
+  buttonShadowOffset: 0,
   chipHeight: 36,
-  chipBorder: 2,
-  cardBorder: 2.5,
-  cardShadowOffset: 6,
-  tileBorder: 2.5,
-  tileShadowOffset: 4,
-  /** Sticker cut (white) stroke in viewBox units: 7 in flat-lays, 9 on picker tiles. */
-  stickerStroke: 7,
-  stickerStrokeTile: 9,
+  chipBorder: 0,
+  tagHeight: 26,
+  iconButton: 44,
+  cardBorder: 1,
+  cardShadowOffset: 0,
+  tileBorder: 2,
+  tileShadowOffset: 0,
+  /** Selected outline width (ink). */
+  selectedBorder: 2,
+  tabBarHeight: 64,
+  fab: 60,
+  fabRing: 6,
+  segmentHeight: 4,
+  barHeight: 5,
+  /** Cutout strokes in viewBox units. */
+  stickerStroke: 0,
+  stickerStrokeTile: 0,
   stickerBodyStroke: 1,
-  stickerDetailStroke: 1.6,
-  stickerDotStroke: 3,
-  /** Hard shadow offset in viewBox units (board: drop-shadow 0 3px 0). */
-  stickerShadowOffset: 3,
-  /** Max sticker tilt in degrees (each garment gets a deterministic angle within ±this). */
-  stickerTilt: 8,
+  stickerDetailStroke: 1.4,
+  stickerDotStroke: 2.6,
+  stickerShadowOffset: 0,
+  /** Cutouts sit straight, front-facing. */
+  stickerTilt: 0,
 } as const;
 
 /** Garment colors: the server `Color` enum rendered as a sticker body (board sticker fills). */

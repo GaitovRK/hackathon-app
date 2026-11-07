@@ -1,25 +1,32 @@
 import { StyleSheet, Text, View } from "react-native";
-import { FlatLay } from "@/components/Items/FlatLay";
-import { ColorBlocks } from "@/components/Layout/ColorBlocks";
+import { OutfitFlatLay } from "@/components/Outfit/OutfitFlatLay";
 import type { LookContent } from "@/content/looks";
-import { displayStyle, useTheme } from "@/theme/useTheme";
+import { useTheme } from "@/theme/useTheme";
 
-type Props = { look: LookContent };
+type Props = { look: LookContent; width?: number };
 
-/** A curated look in the onboarding deck (board `.lc`): stickers on blocks of the look's colors + title. */
-export function LookCard({ look }: Props) {
-  const { colors, radius, spacing, fontSize, block } = useTheme();
+/** A curated look in the onboarding deck (board screen 01): white card, the layered flat-lay, a soft shadow (the only one in the app), item caption under it. */
+export function LookCard({ look, width = 266 }: Props) {
+  const { colors, radius, spacing, fontSize, fontFamily } = useTheme();
   return (
-    <View testID={`look-${look.id}`} style={{ paddingBottom: block.cardShadowOffset }}>
-      <View style={[styles.shadow, { backgroundColor: colors.border, borderRadius: radius.card, top: block.cardShadowOffset }]} />
-      <ColorBlocks colors={look.items.map((i) => i.primaryColor)} style={{ borderRadius: radius.card, borderWidth: block.cardBorder, borderColor: colors.border }}>
-        <View style={{ padding: spacing.xl, gap: spacing.lg, alignItems: "center" }}>
-          <FlatLay garments={look.items} tileSize={104} />
-          <Text style={[styles.title, displayStyle(fontSize.xl, colors.onBlock)]}>{look.title}</Text>
-        </View>
-      </ColorBlocks>
+    <View testID={`look-${look.id}`} style={{ width, gap: spacing.md, alignSelf: "center" }}>
+      <View style={[styles.card, { height: Math.round(width * 1.4), borderRadius: radius.card, backgroundColor: colors.paper, borderColor: colors.line }]}>
+        <OutfitFlatLay garments={look.items} width={Math.round(width * 0.75)} />
+      </View>
+      <Text style={{ color: colors.ink2, fontSize: fontSize.sm, fontFamily: fontFamily.body, textAlign: "center" }}>{look.title}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({ shadow: { position: "absolute", left: 0, right: 0, bottom: 0 }, title: { textAlign: "center" } });
+const styles = StyleSheet.create({
+  card: {
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 15,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 4,
+  },
+});

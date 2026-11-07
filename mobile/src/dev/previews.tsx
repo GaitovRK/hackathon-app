@@ -1,13 +1,16 @@
 import type { ReactNode } from "react";
 import { View } from "react-native";
 import { ButtonPrimary } from "@/components/Buttons/ButtonPrimary";
-import { ButtonSecondary } from "@/components/Buttons/ButtonSecondary";
+import { ButtonGhost, ButtonSecondary, ButtonVolt } from "@/components/Buttons/ButtonSecondary";
 import { LookCard } from "@/components/Cards/LookCard";
 import { OutfitCard } from "@/components/Cards/OutfitCard";
 import { ClosetView } from "@/components/Closet/ClosetView";
 import { ChipRow } from "@/components/Chips/ChipRow";
 import { ItemTile } from "@/components/Items/ItemTile";
-import { ColorBlocks } from "@/components/Layout/ColorBlocks";
+import { TabBar } from "@/components/Navigation/TabBar";
+import { OutfitFlatLay } from "@/components/Outfit/OutfitFlatLay";
+import { BannerVolt } from "@/components/Status/BannerVolt";
+import { SetupChecklist } from "@/components/Status/SetupChecklist";
 import { ItemMeter } from "@/components/Status/ItemMeter";
 import { SegmentedProgress } from "@/components/Status/SegmentedProgress";
 import { LOOKS } from "@/content/looks";
@@ -71,22 +74,20 @@ export const mockOutfit: Outfit = {
 
 export const previews: Preview[] = [
   { title: "Today — outfit card", render: () => <OutfitCard outfit={mockOutfit} onWear={() => undefined} onSave={() => undefined} onFeedback={() => undefined} /> },
-  {
-    title: "Today — card on color blocks",
-    render: () => (
-      <ColorBlocks colors={mockOutfit.items.map((i) => i.item.primaryColor)} style={{ borderRadius: 26, padding: 16 }}>
-        <OutfitCard outfit={{ ...mockOutfit, status: "worn" }} />
-      </ColorBlocks>
-    ),
-  },
+  { title: "Today — liked + worn card", render: () => <OutfitCard outfit={{ ...mockOutfit, status: "worn" }} feedback="like" badge="02 · Work" /> },
+  { title: "Outfit — layered flat-lay (half-and-half)", render: () => <OutfitFlatLay garments={mockOutfit.items.map((i) => i.item)} width={200} /> },
+  { title: "Outfit — locked ghost flat-lay", render: () => <OutfitFlatLay garments={mockOutfit.items.map((i) => i.item)} width={140} ghost /> },
+  { title: "Home — setup checklist", render: () => <SetupChecklist done={2} total={4} progressLabel="2/4" title="Add 3 photos of your own" subtitle="Your real closet makes better picks" onPress={() => undefined} /> },
+  { title: "Banners — volt", render: () => <BannerVolt title="Styling starter basics" subtitle="Add your own photos." actionLabel="Add photos" onAction={() => undefined} /> },
+  { title: "Navigation — tab bar", render: () => <TabBar tabs={[{ name: "index", label: "Today", icon: "sun" }, { name: "closet", label: "Closet", icon: "hanger" }]} active="index" onTab={() => undefined} onAdd={() => undefined} addLabel="Add items" /> },
   { title: "Onboarding — look card", render: () => <LookCard look={LOOKS[2]} /> },
   { title: "Onboarding — progress 7 / 20", render: () => <SegmentedProgress index={7} total={20} label="7 of 20" /> },
   {
-    title: "Items — sticker tiles",
+    title: "Items — cutout tiles (picked / unpicked)",
     render: () => (
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         {mockItems.map((i, n) => (
-          <ItemTile key={i.id} garment={i} label thickCut selected={n % 3 === 0} onPress={() => undefined} />
+          <ItemTile key={i.id} garment={i} label selected={n % 3 === 0} onPress={() => undefined} />
         ))}
       </View>
     ),
@@ -94,11 +95,14 @@ export const previews: Preview[] = [
   { title: "Closet — item meter", render: () => <ItemMeter count={23} limit={50} /> },
   { title: "Chips — occasions", render: () => <ChipRow options={[{ value: "work", label: "Work" }, { value: "friends", label: "Friends" }, { value: "date", label: "Date" }]} value="work" onChange={() => undefined} /> },
   {
-    title: "Buttons — chunky",
+    title: "Buttons — pills",
     render: () => (
       <View style={{ gap: 12 }}>
         <ButtonPrimary label="Build my outfits" onPress={() => undefined} />
-        <ButtonSecondary label="Pass" onPress={() => undefined} />
+        <ButtonSecondary label="Shuffle" onPress={() => undefined} />
+        <ButtonVolt label="Try Pro" onPress={() => undefined} />
+        <ButtonGhost label="Skip" onPress={() => undefined} />
+        <ButtonPrimary label="Disabled" onPress={() => undefined} disabled />
         <ButtonPrimary label="Loading" onPress={() => undefined} loading />
       </View>
     ),

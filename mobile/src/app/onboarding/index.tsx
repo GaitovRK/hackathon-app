@@ -1,15 +1,15 @@
 import { router } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import { ButtonPrimary } from "@/components/Buttons/ButtonPrimary";
-import { FlatLay } from "@/components/Items/FlatLay";
 import { Screen } from "@/components/Layout/Screen";
+import { OutfitFlatLay } from "@/components/Outfit/OutfitFlatLay";
 import { LOOKS } from "@/content/looks";
 import { t } from "@/i18n/t";
 import { useAppDispatch } from "@/store";
 import { onboardingReset, stepChanged } from "@/store/onboardingSlice";
 import { displayStyle, useTheme } from "@/theme/useTheme";
 
-/** Welcome + privacy line, on the brand butter block (board screen 1). */
+/** Welcome: a flat-lay on a mist plate, the serif promise, the privacy line and one ink pill. */
 export default function WelcomeScreen() {
   const { colors, spacing, fontSize, fontFamily, radius } = useTheme();
   const dispatch = useAppDispatch();
@@ -19,14 +19,19 @@ export default function WelcomeScreen() {
     router.push("/onboarding/swipe");
   };
   return (
-    <Screen scroll={false}>
-      <View style={[styles.hero, { backgroundColor: colors.accentSoft, borderRadius: radius.card, padding: spacing.xl }]}>
-        <FlatLay garments={LOOKS[0].items} tileSize={110} />
+    <Screen
+      footer={
+        <>
+          <ButtonPrimary testID="onboarding-start" label={t("onboarding.start")} onPress={start} />
+          <Text style={{ color: colors.ink2, fontSize: fontSize.xs, fontFamily: fontFamily.body, textAlign: "center" }}>{t("onboarding.privacy")}</Text>
+        </>
+      }
+    >
+      <View style={[styles.hero, { backgroundColor: colors.mist, borderRadius: radius.card, paddingVertical: spacing.xl }]}>
+        <OutfitFlatLay garments={LOOKS[0].items} width={190} />
       </View>
-      <Text style={displayStyle(fontSize.display, colors.foreground)}>{t("onboarding.welcomeTitle")}</Text>
-      <Text style={{ color: colors.foreground, fontSize: fontSize.lg, fontFamily: fontFamily.body, lineHeight: 24 }}>{t("onboarding.welcomeBody")}</Text>
-      <Text style={{ color: colors.muted, fontSize: fontSize.sm, fontFamily: fontFamily.body }}>{t("onboarding.privacy")}</Text>
-      <ButtonPrimary testID="onboarding-start" label={t("onboarding.start")} onPress={start} />
+      <Text style={displayStyle(fontSize.display, colors.ink)}>{t("onboarding.welcomeTitle")}</Text>
+      <Text style={{ color: colors.ink2, fontSize: fontSize.lg, fontFamily: fontFamily.body, lineHeight: 23 }}>{t("onboarding.welcomeBody")}</Text>
     </Screen>
   );
 }

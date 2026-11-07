@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { localDate, type FeedbackValue, type Occasion } from "@/services/api/types";
-import { openPaywallScreen } from "@/services/purchases/paywallRoute";
+import { presentPaywall } from "@/services/purchases/presentPaywall";
 import { FIRST_WOW_FLAG, flagStorage } from "@/services/storage/flags";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { useOutfitFeedbackMutation, useRefreshTodayMutation, useSaveOutfitMutation, useTodayQuery, useWearOutfitMutation } from "@/store/api";
@@ -32,7 +32,7 @@ export function useToday(occasion: Occasion) {
       dispatch(firstWowShown());
       if (already) return;
       void flagStorage.set(FIRST_WOW_FLAG);
-      timer = setTimeout(() => openPaywallScreen("FIRST_WOW"), FIRST_WOW_DELAY_MS);
+      timer = setTimeout(() => void presentPaywall(), FIRST_WOW_DELAY_MS);
     });
     return () => {
       cancelled = true;
