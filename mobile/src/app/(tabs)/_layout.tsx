@@ -1,14 +1,20 @@
 import { Redirect, Tabs } from "expo-router";
 import { Screen } from "@/components/Layout/Screen";
+import { TabBar, type TabItem } from "@/components/Navigation/TabBar";
 import { StatusMessage } from "@/components/Status/StatusMessage";
+import { openAddItems } from "@/services/navigation/routes";
 import { t } from "@/i18n/t";
 import { useAppSelector } from "@/store";
 import { useStyleProfileQuery } from "@/store/api";
-import { useTheme } from "@/theme/useTheme";
+
+/** Tabs in the bar (board: Today, +, Closet). Settings stays a tab route but is opened from the Today header. */
+const BAR_TABS: TabItem[] = [
+  { name: "index", label: t("tabs.today"), icon: "sun" },
+  { name: "closet", label: t("tabs.closet"), icon: "hanger" },
+];
 
 /** Tabs for onboarded users; a profile without `onboardedAt` goes to the onboarding flow first. */
 export default function TabsLayout() {
-  const { colors } = useTheme();
   const ready = useAppSelector((s) => s.session.status === "ready");
   const profile = useStyleProfileQuery(undefined, { skip: !ready });
 
@@ -23,11 +29,16 @@ export default function TabsLayout() {
 
   return (
     <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: colors.accent,
-        tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
-      }}
+      screenOptions={{ headerShown: false }}
+      tabBar={({ state, navigation }) => (
+        <TabBar
+          tabs={BAR_TABS}
+          active={state.routes[state.index]?.name ?? "index"}
+          onTab={(name) => navigation.navigate(name)}
+          onAdd={openAddItems}
+          addLabel={t("home.addItems")}
+        />
+      )}
     >
       <Tabs.Screen name="index" options={{ title: t("tabs.today") }} />
       <Tabs.Screen name="closet" options={{ title: t("tabs.closet") }} />

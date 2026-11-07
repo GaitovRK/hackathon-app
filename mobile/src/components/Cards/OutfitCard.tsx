@@ -63,7 +63,7 @@ export function OutfitCard({ outfit, onWear, onSave, onFeedback, feedback = null
       </Text>
       <View style={[styles.row, { gap: spacing.sm }]}>
         <View style={styles.flex}>
-          <ButtonPrimary testID={`wear-${outfit.id}`} small label={worn ? t("today.worn") : t("today.wear")} onPress={() => onWear?.()} disabled={busy || !onWear || worn} />
+          <ButtonPrimary testID={`wear-${outfit.id}`} small label={worn ? t("today.worn") : t("home.wearToday")} onPress={() => onWear?.()} disabled={busy || !onWear || worn} />
         </View>
         <IconButton
           testID={`dislike-${outfit.id}`}
