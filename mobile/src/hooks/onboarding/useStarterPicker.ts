@@ -17,6 +17,13 @@ export function defaultSelection(likedLookIds: string[], wardrobe: Wardrobe): st
   return [...new Set(looksFor(wardrobe).filter((l) => liked.has(l.id)).flatMap((l) => l.items.map((i) => i.starterKey)))];
 }
 
+const WARDROBE_RANK: Record<Wardrobe, number> = { womenswear: 0, both: 1, menswear: 2 };
+
+/** Women first (decision #2): womenswear, then unisex, then menswear; stable within each. */
+export function sortWomenswearFirst<T extends Pick<StarterItem, "wardrobe">>(items: T[]): T[] {
+  return [...items].sort((a, b) => WARDROBE_RANK[a.wardrobe] - WARDROBE_RANK[b.wardrobe]);
+}
+
 /**
  * The starter closet picker state: catalog grouped by category for the wardrobe, selection in the
  * onboarding slice, pre-filled from liked looks once (`preselect`).
@@ -26,7 +33,7 @@ export function useStarterPicker({ preselect }: { preselect: boolean }) {
   const ready = useAppSelector((s) => s.session.status === "ready");
   const { wardrobe, selectedStarterKeys, swipes } = useAppSelector((s) => s.onboarding);
   const catalog = useStarterCatalogQuery(undefined, { skip: !ready });
-  const items = useMemo(() => (catalog.data?.items ?? []).filter((s) => wardrobe === "both" || s.wardrobe === "both" || s.wardrobe === wardrobe), [catalog.data, wardrobe]);
+  const items = useMemo(() => sortWomenswearFirst((catalog.data?.items ?? []).filter((s) => wardrobe === "both" || s.wardrobe === "both" || s.wardrobe === wardrobe)), [catalog.data, wardrobe]);
 
   useEffect(() => {
     if (!preselect || selectedStarterKeys.length > 0 || items.length === 0) return;
