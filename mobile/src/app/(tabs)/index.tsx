@@ -5,6 +5,7 @@ import { ButtonSecondary, ButtonVolt } from "@/components/Buttons/ButtonSecondar
 import { IconButton } from "@/components/Buttons/IconButton";
 import { OutfitCard } from "@/components/Cards/OutfitCard";
 import { ChipRow } from "@/components/Chips/ChipRow";
+import { HomeShortcuts } from "@/components/Home/HomeShortcuts";
 import { Icon } from "@/components/Icons/Icon";
 import { Screen } from "@/components/Layout/Screen";
 import { SetupChecklist } from "@/components/Status/SetupChecklist";
@@ -60,6 +61,7 @@ export default function TodayScreen() {
       </View>
       <Text style={{ color: colors.ink2, fontSize: fontSize.sm + 1, fontFamily: fontFamily.bodySemibold, marginTop: -spacing.sm }}>{dateLabel}</Text>
       <ChipRow testID="occasion" options={occasionOptions} value={occasion} onChange={setOccasion} scroll />
+      <HomeShortcuts />
 
       <View style={styles.between}>
         <Text style={{ color: colors.ink, fontSize: fontSize.xl, fontFamily: fontFamily.bodyBold }}>{t("home.todays3")}</Text>

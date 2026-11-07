@@ -118,3 +118,42 @@ export function localDate(d: Date = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
+
+// ---------- Outfit ideas (#9) ----------
+
+export type Vibe = "sharp" | "relaxed" | "bold";
+export const VIBES: Vibe[] = ["sharp", "relaxed", "bold"];
+
+/** The quick questions (board 05): what for, vibe, formality 1–5. */
+export type IdeasRequest = { occasion: Occasion; vibe: Vibe; formality: number; date?: string };
+
+/** An idea shown in full; `key` is the sorted item-id key (nothing is persisted until saved). */
+export type Idea = { key: string; template: OutfitTemplate; score: number; reason: string; items: OutfitItem[] };
+
+/** A Pro-only idea as a Free user sees it: shapes for a grey silhouette, no ids / names / colors. */
+export type LockedSlot = { slot: OutfitSlot; category: ItemCategory; subcategory: string };
+export type LockedIdea = { key: string; template: OutfitTemplate; slots: LockedSlot[] };
+
+export type IdeasResponse = {
+  date: string;
+  occasion: Occasion;
+  vibe: Vibe;
+  formality: number;
+  isPro: boolean;
+  ideas: Idea[];
+  locked: LockedIdea[];
+  lockedCount: number;
+  freeVisible: number;
+  proMax: number;
+  closetTooSmall: boolean;
+};
+
+export type SaveIdea = { template: OutfitTemplate; itemIds: string[] };
+export type SaveManyRequest = { occasion?: Occasion; date?: string; ideas: SaveIdea[] };
+
+/** The template an item set needs: a dress or separates, layered when outerwear is in. */
+export function templateFor(items: Pick<Item, "category">[]): OutfitTemplate {
+  const has = (c: ItemCategory) => items.some((i) => i.category === c);
+  const base = has("dress") ? "dress" : "separates";
+  return has("outerwear") ? `${base}_layered` : base;
+}

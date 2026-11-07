@@ -6,6 +6,6 @@ import { QuotaService } from './quota.service';
 @Module({
   controllers: [MeController],
   providers: [EntitlementService, QuotaService],
-  exports: [QuotaService],
+  exports: [QuotaService, EntitlementService],
 })
 export class BillingModule {}

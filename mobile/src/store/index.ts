@@ -3,6 +3,7 @@ import { setupListeners } from "@reduxjs/toolkit/query";
 import { AppState } from "react-native";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import { api } from "./api";
+import { ideasSlice } from "./ideasSlice";
 import { onboardingSlice } from "./onboardingSlice";
 import { sessionSlice } from "./sessionSlice";
 
@@ -11,6 +12,7 @@ export function makeStore() {
     reducer: {
       session: sessionSlice.reducer,
       onboarding: onboardingSlice.reducer,
+      ideas: ideasSlice.reducer,
       [api.reducerPath]: api.reducer,
     },
     middleware: (getDefault) => getDefault().concat(api.middleware),

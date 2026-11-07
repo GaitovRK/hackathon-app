@@ -7,10 +7,13 @@ import {
   type CreateGenerationRequest,
   type FeedbackValue,
   type Generation,
+  type IdeasRequest,
+  type IdeasResponse,
   type Item,
   type ItemPatch,
   type MeResponse,
   type Outfit,
+  type SaveManyRequest,
   type PaywallCode,
   type StarterCatalogResponse,
   type StyleProfile,
@@ -141,6 +144,16 @@ export const api = createApi({
       query: ({ id, value }) => ({ url: `outfits/${id}/feedback`, method: "POST", body: { value } }),
     }),
     savedOutfits: build.query<Outfit[], void>({ query: () => "outfits/saved", providesTags: ["Outfit"] }),
+    outfit: build.query<Outfit, string>({ query: (id) => `outfits/${id}`, providesTags: (_r, _e, id) => [{ type: "Outfit", id }] }),
+
+    // Outfit ideas (#9): generate persists nothing; save-many stores the liked ones
+    generateIdeas: build.mutation<IdeasResponse, IdeasRequest>({
+      query: (body) => ({ url: "outfits/ideas", method: "POST", body }),
+    }),
+    saveIdeas: build.mutation<Outfit[], SaveManyRequest>({
+      query: (body) => ({ url: "outfits/save-many", method: "POST", body }),
+      invalidatesTags: ["Outfit"],
+    }),
   }),
 });
 
@@ -163,4 +176,7 @@ export const {
   useSaveOutfitMutation,
   useOutfitFeedbackMutation,
   useSavedOutfitsQuery,
+  useOutfitQuery,
+  useGenerateIdeasMutation,
+  useSaveIdeasMutation,
 } = api;

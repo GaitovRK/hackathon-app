@@ -91,11 +91,7 @@ export class OutfitsService {
       await this.prisma.outfit.deleteMany({ where: { userId, date, occasion, status: 'suggested' } });
     }
 
-    const [items, profile, history] = await Promise.all([
-      this.prisma.item.findMany({ where: { userId, archivedAt: null } }),
-      this.engineProfile(userId),
-      this.history(userId, date),
-    ]);
+    const [items, { profile, history }] = await Promise.all([this.prisma.item.findMany({ where: { userId, archivedAt: null } }), this.engineContext(userId, date)]);
     const { suggestions } = suggestOutfits(
       { items: items.map(toEngineItem), profile, history, occasion, season: seasonOf(date), excludeKeys, seed },
       this.reasons,
@@ -120,6 +116,17 @@ export class OutfitsService {
     }
     const saved = await this.findDay(userId, date, occasion);
     return this.respond(userId, date, occasion, saved, suggestions.length === 0);
+  }
+
+  /** One outfit with its items (404 unless the user owns it). */
+  get(userId: string, id: string): Promise<OutfitWithItems> {
+    return this.getOwned(userId, id);
+  }
+
+  /** What the engine needs to score for this user on a date: the style profile and the recent wear history. */
+  async engineContext(userId: string, date: Date): Promise<{ profile: EngineProfile; history: WearHistory }> {
+    const [profile, history] = await Promise.all([this.engineProfile(userId), this.history(userId, date)]);
+    return { profile, history };
   }
 
   async wear(userId: string, id: string, body: unknown): Promise<OutfitWithItems> {
