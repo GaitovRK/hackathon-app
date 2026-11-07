@@ -6,5 +6,8 @@ export const openAddItems = () => router.push({ pathname: "/onboarding/closet", 
 /** Settings (Restore Purchases lives there), opened from the Today header. */
 export const openSettings = () => router.push("/settings");
 
-/** Add your own clothes from a photo (#21): the tab bar centre +, Today checklist, Dress me banner, Closet. */
+/** Add your own clothes from a photo (#21): the tab bar + bubble, Today checklist, Dress me banner, Closet. */
 export const openAddPhoto = () => router.push("/add-photo");
+
+/** Build an outfit row by row (Dress me), from the tab bar + bubble. */
+export const openDressMe = () => router.push("/dress-me");

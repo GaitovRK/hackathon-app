@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon, type IconName } from "@/components/Icons/Icon";
+import { AddMenu, type AddAction } from "./AddMenu";
 import { useTheme } from "@/theme/useTheme";
 
 export type TabItem = { name: string; label: string; icon: IconName };
@@ -10,14 +12,19 @@ type Props = {
   tabs: TabItem[];
   active: string;
   onTab: (name: string) => void;
-  onAdd: () => void;
+  /** Actions in the bubble the + opens. */
+  addActions: AddAction[];
   addLabel: string;
 };
 
-/** Board `.tabbar`: paper bar with a hairline, ink3 inactive / ink + dot active, and a raised 60pt ink + with a 6pt paper ring. */
-export function TabBar({ tabs, active, onTab, onAdd, addLabel }: Props) {
+/** How far the raised + sits above the bar's top edge (bar paddingTop 10, fab marginTop -26). */
+const FAB_RISE = 16;
+
+/** Board `.tabbar`: paper bar with a hairline, ink3 inactive / ink + dot active, and a raised 60pt ink + with a 6pt paper ring that opens the add bubble. */
+export function TabBar({ tabs, active, onTab, addActions, addLabel }: Props) {
   const { colors, fontFamily, block } = useTheme();
   const insets = useSafeAreaInsets();
+  const [menuOpen, setMenuOpen] = useState(false);
   const half = Math.ceil(tabs.length / 2);
   const tab = (item: TabItem) => {
     const on = item.name === active;
@@ -37,7 +44,8 @@ export function TabBar({ tabs, active, onTab, onAdd, addLabel }: Props) {
         testID="tab-add"
         accessibilityRole="button"
         accessibilityLabel={addLabel}
-        onPress={onAdd}
+        accessibilityState={{ expanded: menuOpen }}
+        onPress={() => setMenuOpen(true)}
         style={({ pressed }) => [
           styles.fab,
           { width: block.fab + block.fabRing * 2, height: block.fab + block.fabRing * 2, borderRadius: block.fab, borderWidth: block.fabRing, borderColor: colors.paper, backgroundColor: colors.ink, marginTop: -26 },
@@ -47,6 +55,7 @@ export function TabBar({ tabs, active, onTab, onAdd, addLabel }: Props) {
         <Icon name="plus" size={26} color={colors.paper} strokeWidth={2.2} />
       </Pressable>
       {tabs.slice(half).map(tab)}
+      {menuOpen ? <AddMenu actions={addActions} anchorBottom={block.tabBarHeight + insets.bottom + FAB_RISE} onClose={() => setMenuOpen(false)} /> : null}
     </View>
   );
 }

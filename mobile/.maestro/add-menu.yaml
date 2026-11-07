@@ -1,0 +1,25 @@
+# Tab bar + bubble (#33): + → bubble → tap outside closes → + → Create an outfit → Dress me.
+# Needs an onboarded user, the dev build and a running server (not run by agents).
+appId: com.gaitov.hackathonapp
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "tab-add"
+    timeout: 15000
+- tapOn:
+    id: "tab-add"
+- assertVisible:
+    id: "add-menu-upload"
+- assertVisible:
+    id: "add-menu-outfit"
+- tapOn:
+    point: "50%,20%"
+- assertNotVisible:
+    id: "add-menu"
+- tapOn:
+    id: "tab-add"
+- tapOn:
+    id: "add-menu-outfit"
+- assertNotVisible:
+    id: "add-menu"

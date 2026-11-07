@@ -102,7 +102,21 @@ export const previews: Preview[] = [
   { title: "Outfit — locked ghost flat-lay", render: () => <OutfitFlatLay garments={mockOutfit.items.map((i) => i.item)} width={140} ghost /> },
   { title: "Home — setup checklist", render: () => <SetupChecklist done={2} total={4} progressLabel="2/4" title="Add 3 photos of your own" subtitle="Your real closet makes better picks" onPress={() => undefined} /> },
   { title: "Banners — volt", render: () => <BannerVolt title="Styling starter basics" subtitle="Add your own photos." actionLabel="Add photos" onAction={() => undefined} /> },
-  { title: "Navigation — tab bar", render: () => <TabBar tabs={[{ name: "index", label: "Today", icon: "sun" }, { name: "closet", label: "Closet", icon: "hanger" }]} active="index" onTab={() => undefined} onAdd={() => undefined} addLabel="Add items" /> },
+  {
+    title: "Navigation — tab bar (tap + for the bubble)",
+    render: () => (
+      <TabBar
+        tabs={[{ name: "index", label: "Today", icon: "sun" }, { name: "closet", label: "Closet", icon: "hanger" }]}
+        active="index"
+        onTab={() => undefined}
+        addActions={[
+          { key: "upload", label: "Upload clothes", hint: "Snap or pick a photo of a piece", icon: "camera", onPress: () => undefined },
+          { key: "outfit", label: "Create an outfit", hint: "Mix your pieces, row by row", icon: "hanger", onPress: () => undefined },
+        ]}
+        addLabel="Add items"
+      />
+    ),
+  },
   { title: "Onboarding — look card", render: () => <LookCard look={LOOKS[2]} /> },
   { title: "Onboarding — progress 7 / 20", render: () => <SegmentedProgress index={7} total={20} label="7 of 20" /> },
   {
