@@ -1,4 +1,5 @@
 import type { ItemCategory } from "@/services/api/types";
+import { WOMEN_SHAPES } from "./garmentPaths.women";
 
 /**
  * Garment stickers from `docs/design/flick-board.html` (100×100 viewBox): `body` is the die-cut
@@ -55,6 +56,7 @@ export const SHAPES = {
   watch: { body: P.watch, detail: "M50 50 V42 M50 50 L56 53 M41 14 H59 M41 86 H59" },
   scarf: { body: P.scarf, detail: "M39 60 H61 M26 86 L36 86 M64 86 L74 86" },
   bag: { body: P.bag, detail: "M36 36 Q36 12 50 12 Q64 12 64 36 M22 48 H78" },
+  ...WOMEN_SHAPES,
 } as const satisfies Record<string, GarmentShape>;
 
 export type ShapeKey = keyof typeof SHAPES;
