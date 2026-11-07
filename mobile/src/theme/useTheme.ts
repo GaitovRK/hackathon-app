@@ -35,7 +35,12 @@ export function useTheme(): Theme {
   return theme;
 }
 
-/** Display text style (Bricolage 800, tight tracking / leading) at a size. */
+/** Serif display text (Instrument Serif) at a size: screen titles, big numbers. Use once per screen. */
 export function displayStyle(size: number, color: string) {
-  return { fontFamily: fontFamily.display, fontSize: size, color, letterSpacing: display.letterSpacing * size, lineHeight: Math.round(size * display.lineHeight * 1.08) };
+  return { fontFamily: fontFamily.display, fontSize: size, color, letterSpacing: display.letterSpacing * size, lineHeight: Math.round(size * 1.05) };
+}
+
+/** Italic serif reason line (board 24 italic quote). */
+export function reasonStyle(size: number, color: string) {
+  return { fontFamily: fontFamily.displayItalic, fontSize: size, color, lineHeight: Math.round(size * 1.2) };
 }
