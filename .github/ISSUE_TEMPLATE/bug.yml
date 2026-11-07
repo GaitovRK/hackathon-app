@@ -1,0 +1,19 @@
+name: Bug
+description: Something is broken
+labels: ["bug", "agent:dev", "status:todo"]
+body:
+  - type: dropdown
+    id: where
+    attributes: { label: Where, options: [Mobile iOS, Mobile Android, Server / generation, Paywall / purchases] }
+    validations: { required: true }
+  - type: textarea
+    id: what
+    attributes: { label: What happened, description: And what you expected }
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes: { label: Steps to reproduce }
+    validations: { required: true }
+  - type: textarea
+    id: logs
+    attributes: { label: Logs / generation id, render: text }

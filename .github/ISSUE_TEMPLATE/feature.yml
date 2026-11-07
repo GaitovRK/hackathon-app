@@ -1,0 +1,26 @@
+name: Feature
+description: A small feature (≤ 30 min of agent work)
+labels: ["status:todo"]
+body:
+  - type: textarea
+    id: goal
+    attributes: { label: Goal, description: "What does the user (and the demo) get? How does it help monetization?" }
+    validations: { required: true }
+  - type: textarea
+    id: scope
+    attributes: { label: Scope, description: Screens, endpoints, fal model, paywall touchpoints }
+    validations: { required: true }
+  - type: dropdown
+    id: where
+    attributes: { label: Where, options: [Mobile, Server, Both] }
+    validations: { required: true }
+  - type: textarea
+    id: criteria
+    attributes:
+      label: Acceptance criteria
+      value: |
+        - [ ]
+        - [ ] Copy in mobile/messages/en.json
+        - [ ] Tests added (fal / RevenueCat mocked)
+        - [ ] Dev preview entry (mobile UI) or curl steps (server)
+    validations: { required: true }

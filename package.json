@@ -1,0 +1,9 @@
+{
+  "name": "hackathon-app",
+  "private": true,
+  "scripts": {
+    "verify:mobile": "pnpm --dir mobile typecheck && pnpm --dir mobile lint && pnpm --dir mobile test",
+    "verify:server": "pnpm --dir server typecheck && pnpm --dir server lint && pnpm --dir server test && pnpm --dir server test:e2e",
+    "verify": "pnpm verify:server && pnpm verify:mobile"
+  }
+}
