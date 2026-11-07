@@ -1,34 +1,42 @@
-# Flick design style ("Color Block")
+# Flick design style ("Reference Direction")
 
-Source of truth: `docs/design/flick-board.html` (design D). Every value below lives in `mobile/src/theme/tokens.ts`; components never hard-code hex. Light theme only (`app.json` `userInterfaceStyle: light`).
+Source of truth: `docs/design/flick-board.html` (board E, decision #2). Every value below lives in `mobile/src/theme/tokens.ts`; components never hard-code hex. Light theme only (`app.json` `userInterfaceStyle: light`). Feel: gallery-white, calm, decisive: the clothes are the color.
 
 ## Tokens
 | token | value | used for |
 |---|---|---|
-| screen / background | `#F6F6F3` | page background |
-| surface | `#FFFFFF` | cards, chips, tiles |
-| soft | `#ECEDF0` | quiet fills |
-| ink / foreground | `#15171C` | text, chunky borders, hard shadows (`--edge`) |
-| ink-2 / muted | `#5C606B` | secondary text |
-| line / borderSoft | `rgba(21,23,28,.12)` | dividers, unselected tiles |
-| accent | `#2E54E8` (on `#FFFFFF`) | primary button, current progress segment |
-| pop / accentSoft | `#FFD23F` | highlights, selected tiles, active tab, "pop" button |
-| coral | `#FF6A4D` | danger / dislike |
-| blocks | camel `#F2B35E`, navy `#22336B`, cobalt `#3D63F0`, sky `#A9C4FF`, blush `#FFC2B0`, butter `#FFD23F`, sage `#A8D5B0` | color-blocked backgrounds derived from the outfit's own garment colors (`blockPalette`) |
-| radius | btn 16, tile 18, card 26, pill 999 | |
-| spacing | 4 / 8 / 12 / 16 / 24 / 40 | |
+| paper (`background`, `surface`) | `#FFFFFF` | screens, outfit canvas, cards |
+| mist (`surfaceAlt`, `tile`) | `#F5F5F5` | tiles, chips, secondary buttons, icon buttons, setup card |
+| chip | `#EBEBEB` | disabled buttons, progress tracks |
+| line (`borderSoft`) | `#E5E5E5` | hairlines, card edges, tab bar top |
+| ink (`foreground`, `accent`, `border`) | `#141414` | text, primary pill, selected outline, the + |
+| ink2 (`muted`) | `#6B6B6B` | secondary text |
+| ink3 | `#A3A3A3` | inactive tabs, done / locked rows |
+| volt (`accentSoft`) | `#D4FF2A` | **Pro and upsell only**: Try Pro pill, PRO badge, Pro banner |
+| lilac (`like`) | `#C9B6FB` | liked, AI, current step, selected chip |
+| lilac2 | `#EFE9FE` | soft lilac fill |
+| radius | tag 6, small 12, tile 16, card 24, pill 999 | every button and chip is a pill |
+| spacing | 4 / 8 / 12 / 16 / 20 (gutter) / 24 / 32 | |
+
+The old role names (`accent`, `accentSoft`, `border`, `block.*`, ...) are kept as aliases so older code compiles; new code uses the board names.
 
 ## Type
-- Display: **Bricolage Grotesque 800**, letter-spacing −0.025em, line-height 0.95 (`displayStyle()` in `useTheme.ts`).
-- Body: **Figtree** 400 / 600 / 800 (`fontFamily.body`, `bodySemibold`, `bodyBold`).
-- Scale: 11.5 / 14 / 15 / 17 / 22 / 32 / 44.
-- Loaded with `@expo-google-fonts/*` + `expo-font` (`useAppFonts()`), system fallback until ready.
+- **Instrument Serif** 400 (`fontFamily.display`, `displayStyle()`): screen titles 34-40, big numbers (23 / 50), the wordmark. Italic (`fontFamily.displayItalic`, `reasonStyle()`) for the outfit reason line. **Once per screen.**
+- **Figtree** (`fontFamily.body` 500, `bodySemibold` 600, `bodyBold` 700): body 14-16, labels 13 / 600, buttons and headings 700.
+- Loaded with `@expo-google-fonts/instrument-serif` + `@expo-google-fonts/figtree` (`useAppFonts()`), system fallback until ready.
+
+## Components (`mobile/src/components/`)
+- **Buttons**: `ButtonPrimary` ink pill 52h (`small` 40h), `ButtonSecondary` mist, `ButtonVolt` volt (Pro / upsell), `ButtonGhost` text only; pressed = scale .97, disabled = chip bg + ink3. `IconButton` 44 circle: mist / line / ink / lilac.
+- **Chips**: `Chip` mist pill 36h, no border; selected = lilac. `variant="tag"` = 26h, radius 8 (selected = ink).
+- **Items**: `ItemTile` = flat cutout on a mist tile (radius 16); pickable tiles show a hollow ink3 ring, picked = filled ink check + 2px ink outline. `GarmentCutout` draws the flat SVG (tinted body, faint edge, seam lines; no sticker cut, tilt or shadow). Garment paths: `Items/garmentShapes.ts` (+ `garmentPaths.women.ts`).
+- **Outfit**: `OutfitFlatLay` = the layered flat-lay in a 0.68 box: top (outer layer as the **left half**, base as the **right half**), bottom, belt, shoes, accessory; dress replaces top + bottom. `ghost` = grey Pro silhouettes. No image generation.
+- **Cards**: `OutfitCard` = white card, 1px line (liked = 2px ink + lilac heart), "01 · Work" pill, heart badge, the italic reason under the card, Wear today / not for me / save. `LookCard` = onboarding card with the only soft shadow in the app.
+- **Status**: `SegmentedProgress` (ink done, lilac current, chip todo), `ProgressBar` (5h chip track, ink fill), `ItemMeter` (serif 23 / 50 + bar), `BannerVolt` (volt block + small ink button), `SetupChecklist` (2/4 ring + next step on mist), `StatusMessage`.
+- **Navigation**: `TabBar` = paper bar with a hairline, Today and Closet (inactive ink3, active ink + dot) around a raised 60pt ink **+** with a 6pt paper ring (opens the add-items entry: the basics picker in add mode for now). Settings opens from the Today header.
+- **Icons**: `Icons/Icon` = the board's 24-grid outline set (1.8 stroke, round caps; filled only when active).
 
 ## Rules
-- **Flat color blocks**, never gradients. A card sits on blocks of its own colors (`ColorBlocks`).
-- **Die-cut stickers** (`GarmentSticker`): silhouette drawn as hard offset shadow (3 units, `rgba(0,0,0,.22)`), white cut stroke (7; 9 on picker tiles), tinted body with a 1px `rgba(0,0,0,.16)` edge, then seam lines 1.6 and button dots 3 (`rgba(0,0,0,.28)`, or `rgba(255,255,255,.35)` on dark garments). Each sticker has a deterministic tilt within ±8°.
-- **Chunky buttons**: 58px face, 2.5px ink border, radius 16, a 5px ink block under it as the shadow; pressing drops the face by 4px. Variants: primary (accent), alt (surface), pop (butter).
-- **Chips**: 36px, 2px ink border, pill; selected = ink fill, screen text.
-- **Cards**: 2.5px ink border, radius 26, 6px hard shadow. Tiles: radius 18, 2.5px `line` border; selected = ink border + 4px shadow + butter fill.
-- Garment paths: `mobile/src/components/Items/garmentShapes.ts` (board `#p-*` + `.dt` details; skirt / boots / heels / scarf / bag derived in the same style).
-- Screens: starter picker headline "What's already in your closet?"; Today = a stack of 3 cards flicked horizontally, the front card on its own blocks; Closet = "23 / 50" meter + category grid; onboarding deck = segmented "7 / 20" bar.
+- Flat surfaces: no borders except 1px hairlines and the 2px ink selected outline; no hard shadows, gradients or blur.
+- Volt marks every Pro moment and nothing else. Lilac marks liked / AI / current step.
+- **No custom paywall screen.** Every paywall moment (402 codes, first wow, Try Pro) calls `presentPaywall()` in `services/purchases/presentPaywall.ts`, which presents the RevenueCat dashboard paywall (RevenueCatUI). Restore Purchases stays in Settings.
+- Screens: onboarding swipe = back / "7 / 20" / Skip + segmented bar + serif question + card + X / heart; basics picker = "What's already in your closet?", 3 columns, filter chips, sticky "Build my outfits · N"; Today = wordmark + Try Pro, Work-first chips, peeking carousel of 3 with reasons, New set + free count, setup checklist. Closet layout is not part of this board yet (tokens only).
