@@ -83,8 +83,11 @@ export type Item = GarmentTags & {
 
 export type ItemPatch = Partial<Pick<GarmentTags, "name" | "category" | "subcategory" | "primaryColor" | "secondaryColor" | "pattern" | "material" | "formality" | "warmth" | "seasons" | "occasions">>;
 
-/** `POST /items/photo` (201): the cutout item; `tagged: false` = the AI could not tell what it is (user picks a category). */
-export type ItemPhotoResponse = { item: Item; tagged: boolean };
+/**
+ * `POST /items/photo` (201): one flat-lay cutout item per garment found in the photo (max 4);
+ * `tagged: false` = the AI could not tell what it is (one default item, user picks a category).
+ */
+export type ItemPhotoResponse = { items: Item[]; tagged: boolean };
 
 /** A picked photo to upload (local file URI from expo-image-picker). */
 export type ItemPhotoUpload = { uri: string; mimeType?: string | null; fileName?: string | null };

@@ -1,4 +1,5 @@
-# Photo items (#21): tab bar + → Add from a photo → Choose from library → processing → result card → fix it → Done → Closet.
+# Photo items (#21, #34): tab bar + → Add from a photo → Choose from library → processing → one flat-lay card per garment → fix it → Done → Closet.
+# Result controls carry the item id (`add-photo-fix-<id>`), so the flow matches them by regex (first card).
 # Needs an onboarded user, the dev build with expo-image-picker, a photo in the library and a running server (not run by agents).
 appId: com.gaitov.hackathonapp
 ---
@@ -27,17 +28,17 @@ appId: com.gaitov.hackathonapp
 - extendedWaitUntil:
     visible:
       id: "add-photo-result"
-    timeout: 40000
+    timeout: 60000
 - tapOn:
-    id: "add-photo-fix"
+    id: "add-photo-fix-.*"
     optional: true
 - tapOn:
-    id: "add-photo-category-top"
+    id: "add-photo-category-.*-top"
 - tapOn:
-    id: "add-photo-save"
+    id: "add-photo-save-.*"
 - extendedWaitUntil:
     visible:
-      id: "add-photo-fix"
+      id: "add-photo-fix-.*"
     timeout: 10000
 - tapOn:
     id: "add-photo-done"

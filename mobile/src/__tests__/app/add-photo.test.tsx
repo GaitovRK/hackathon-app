@@ -56,7 +56,7 @@ describe("AddPhotoScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     requests = [];
-    uploadReply = { status: 201, body: { item: photoItem, tagged: true } };
+    uploadReply = { status: 201, body: { items: [photoItem], tagged: true } };
     picker.requestMediaLibraryPermissionsAsync.mockResolvedValue({ granted: true } as never);
     picker.requestCameraPermissionsAsync.mockResolvedValue({ granted: true } as never);
     picker.launchImageLibraryAsync.mockResolvedValue({ canceled: false, assets: [{ uri: "file:///blouse.jpg", mimeType: "image/jpeg", fileName: "blouse.jpg", width: 1, height: 1 }] } as never);
@@ -89,13 +89,15 @@ describe("AddPhotoScreen", () => {
     await renderScreen();
     fireEvent.press(screen.getByTestId("add-photo-library"));
     await waitFor(() => expect(screen.getByTestId("add-photo-processing")).toBeTruthy());
-    expect(screen.getByText("Cutting it out…")).toBeTruthy();
+    expect(screen.getByText("Finding your clothes…")).toBeTruthy();
+    expect(screen.getByText("About 15 seconds.")).toBeTruthy();
     expect(picker.launchImageLibraryAsync).toHaveBeenCalledWith({ mediaTypes: ["images"], quality: 0.6, allowsEditing: false });
 
     finish!();
     await waitFor(() => expect(screen.getByTestId("add-photo-result")).toBeTruthy());
-    expect(screen.getByTestId("add-photo-name")).toHaveTextContent("Cream silk blouse");
-    expect(screen.queryByTestId("add-photo-edit")).toBeNull();
+    expect(screen.getByTestId("add-photo-name-p1")).toHaveTextContent("Cream silk blouse");
+    expect(screen.queryByTestId("add-photo-edit-p1")).toBeNull();
+    expect(screen.queryByTestId("add-photo-result-title")).toBeNull();
     const upload = requests.find((r) => r.url.endsWith("/items/photo"));
     expect(upload?.method).toBe("POST");
 
@@ -118,7 +120,7 @@ describe("AddPhotoScreen", () => {
     await renderScreen();
     fireEvent.press(screen.getByTestId("add-photo-library"));
     await waitFor(() => expect(screen.getByTestId("add-photo-failed")).toBeTruthy());
-    uploadReply = { status: 201, body: { item: photoItem, tagged: true } };
+    uploadReply = { status: 201, body: { items: [photoItem], tagged: true } };
     fireEvent.press(screen.getByTestId("add-photo-retry"));
     await waitFor(() => expect(screen.getByTestId("add-photo-result")).toBeTruthy());
   });
@@ -130,19 +132,47 @@ describe("AddPhotoScreen", () => {
     await waitFor(() => expect(screen.getByText(/Camera access is off/)).toBeTruthy());
     expect(picker.launchCameraAsync).not.toHaveBeenCalled();
   });
-  it("opens the edit state straight away when tagged is false, and PATCHes the fix", async () => {
-    uploadReply = { status: 201, body: { item: { ...photoItem, name: "Item" }, tagged: false } };
+  it("shows one card per garment with its own Fix it, and the 'Added N items' title", async () => {
+    const jeans: Item = { ...photoItem, id: "p2", name: "Dark indigo jeans", category: "bottom", subcategory: "jeans", primaryColor: "navy" };
+    uploadReply = { status: 201, body: { items: [photoItem, jeans], tagged: true } };
     await renderScreen();
     fireEvent.press(screen.getByTestId("add-photo-library"));
-    await waitFor(() => expect(screen.getByTestId("add-photo-edit")).toBeTruthy());
+    await waitFor(() => expect(screen.getByTestId("add-photo-result")).toBeTruthy());
+    expect(screen.getByTestId("add-photo-result-title")).toHaveTextContent("Added 2 items");
+    expect(screen.getByTestId("add-photo-name-p1")).toHaveTextContent("Cream silk blouse");
+    expect(screen.getByTestId("add-photo-name-p2")).toHaveTextContent("Dark indigo jeans");
+    expect(screen.getByTestId("add-photo-fix-p1")).toBeTruthy();
+
+    // editing one card leaves the other untouched
+    fireEvent.press(screen.getByTestId("add-photo-fix-p2"));
+    await waitFor(() => expect(screen.getByTestId("add-photo-edit-p2")).toBeTruthy());
+    expect(screen.queryByTestId("add-photo-edit-p1")).toBeNull();
+    expect(screen.getAllByTestId("add-photo-done")).toHaveLength(1);
+  });
+
+  it("explains when the photo has no clothes (422 NOT_CLOTHING) and goes back to the picker", async () => {
+    uploadReply = { status: 422, body: { code: "NOT_CLOTHING" } };
+    await renderScreen();
+    fireEvent.press(screen.getByTestId("add-photo-library"));
+    await waitFor(() => expect(screen.getByTestId("add-photo-pick")).toBeTruthy());
+    expect(screen.getByText(/We couldn't find clothes in that photo/)).toBeTruthy();
+    expect(screen.queryByTestId("add-photo-failed")).toBeNull();
+  });
+
+  // Keep this one last: the PATCH mutation leaves RTK Query state settling, which blanks the next test's render.
+  it("opens the edit state straight away when tagged is false, and PATCHes the fix", async () => {
+    uploadReply = { status: 201, body: { items: [{ ...photoItem, name: "Item" }], tagged: false } };
+    await renderScreen();
+    fireEvent.press(screen.getByTestId("add-photo-library"));
+    await waitFor(() => expect(screen.getByTestId("add-photo-edit-p1")).toBeTruthy());
     expect(screen.getAllByText("We couldn't tell what this is; pick a category.").length).toBeGreaterThan(0);
 
-    fireEvent.press(screen.getByTestId("add-photo-category-dress"));
-    fireEvent.changeText(screen.getByTestId("add-photo-edit-name"), "Black slip dress");
-    fireEvent.press(screen.getByTestId("add-photo-color-black"));
-    fireEvent.press(screen.getByTestId("add-photo-save"));
-    await waitFor(() => expect(screen.getByTestId("add-photo-fix")).toBeTruthy());
+    fireEvent.press(screen.getByTestId("add-photo-category-p1-dress"));
+    fireEvent.changeText(screen.getByTestId("add-photo-edit-name-p1"), "Black slip dress");
+    fireEvent.press(screen.getByTestId("add-photo-color-p1-black"));
+    fireEvent.press(screen.getByTestId("add-photo-save-p1"));
+    await waitFor(() => expect(screen.getByTestId("add-photo-fix-p1")).toBeTruthy());
     expect(requests.some((r) => r.url.endsWith("/items/p1") && r.method === "PATCH")).toBe(true);
-    expect(screen.getByTestId("add-photo-name")).toHaveTextContent("Black slip dress");
+    expect(screen.getByTestId("add-photo-name-p1")).toHaveTextContent("Black slip dress");
   });
 });
