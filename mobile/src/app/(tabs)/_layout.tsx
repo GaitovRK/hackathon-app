@@ -2,7 +2,8 @@ import { Redirect, Tabs } from "expo-router";
 import { Screen } from "@/components/Layout/Screen";
 import { TabBar, type TabItem } from "@/components/Navigation/TabBar";
 import { StatusMessage } from "@/components/Status/StatusMessage";
-import { openAddPhoto } from "@/services/navigation/routes";
+import type { AddAction } from "@/components/Navigation/AddMenu";
+import { openAddPhoto, openDressMe } from "@/services/navigation/routes";
 import { t } from "@/i18n/t";
 import { useAppSelector } from "@/store";
 import { useStyleProfileQuery } from "@/store/api";
@@ -11,6 +12,12 @@ import { useStyleProfileQuery } from "@/store/api";
 const BAR_TABS: TabItem[] = [
   { name: "index", label: t("tabs.today"), icon: "sun" },
   { name: "closet", label: t("tabs.closet"), icon: "hanger" },
+];
+
+/** The bubble the centre + opens (#33). */
+const ADD_ACTIONS: AddAction[] = [
+  { key: "upload", label: t("addMenu.upload"), hint: t("addMenu.uploadHint"), icon: "camera", onPress: openAddPhoto },
+  { key: "outfit", label: t("addMenu.outfit"), hint: t("addMenu.outfitHint"), icon: "hanger", onPress: openDressMe },
 ];
 
 /** Tabs for onboarded users; a profile without `onboardedAt` goes to the onboarding flow first. */
@@ -35,7 +42,7 @@ export default function TabsLayout() {
           tabs={BAR_TABS}
           active={state.routes[state.index]?.name ?? "index"}
           onTab={(name) => navigation.navigate(name)}
-          onAdd={openAddPhoto}
+          addActions={ADD_ACTIONS}
           addLabel={t("home.addItems")}
         />
       )}

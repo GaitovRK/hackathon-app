@@ -57,6 +57,8 @@ const light = {
   stickerDetailLight: "rgba(255,255,255,0.2)",
   tile: board.mist,
   tileStroke: board.line,
+  /** Dim layer behind bubbles and menus (the tab bar + bubble). */
+  scrim: "rgba(20,20,20,0.28)",
   /** Locked / ghost garment fill (Pro silhouettes). */
   ghost: "#ECECEE",
 };
