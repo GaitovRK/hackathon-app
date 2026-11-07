@@ -1,0 +1,70 @@
+# Outfit flows (#9): Home → Generate (quick questions) → Ideas grid (like 2, save) → Outfit detail (worn) → Dress me (pin, shuffle, save).
+# Needs an onboarded user, the dev build and a running server (not run by agents).
+appId: com.gaitov.hackathonapp
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "home-generate"
+    timeout: 15000
+- tapOn:
+    id: "home-generate"
+- tapOn:
+    id: "generate-for-event"
+- tapOn:
+    id: "generate-vibe-sharp"
+- tapOn:
+    id: "generate-formality-4"
+- tapOn:
+    id: "generate-show"
+- extendedWaitUntil:
+    visible:
+      id: "ideas-grid"
+    timeout: 15000
+- assertVisible:
+    text: "Unlock with Pro"
+- tapOn:
+    index: 0
+    id: "idea-.*"
+- tapOn:
+    index: 1
+    id: "idea-.*"
+- assertVisible:
+    text: "2 liked"
+- tapOn:
+    id: "ideas-save"
+- assertVisible:
+    text: "Saved 2 ✓"
+- tapOn:
+    index: 0
+    id: "idea-open-.*"
+- extendedWaitUntil:
+    visible:
+      id: "outfit-flatlay"
+    timeout: 10000
+- tapOn:
+    id: "outfit-wear"
+- assertVisible:
+    text: "Worn ✓"
+- tapOn:
+    id: "flow-back"
+- tapOn:
+    id: "flow-back"
+- tapOn:
+    id: "flow-back"
+- tapOn:
+    id: "home-dress-me"
+- extendedWaitUntil:
+    visible:
+      id: "dressme-top"
+    timeout: 10000
+- tapOn:
+    id: "dressme-top-pin"
+- assertVisible:
+    text: "Pinned"
+- tapOn:
+    id: "dressme-shuffle"
+- tapOn:
+    id: "dressme-save"
+- assertVisible:
+    text: "Saved ✓"

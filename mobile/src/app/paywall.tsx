@@ -14,7 +14,7 @@ import { useAppDispatch } from "@/store";
 import { api } from "@/store/api";
 import { useTheme } from "@/theme/useTheme";
 
-const REASONS: PaywallReason[] = ["QUOTA_EXCEEDED", "ITEM_LIMIT", "REFRESH_LIMIT", "FIRST_WOW"];
+const REASONS: PaywallReason[] = ["QUOTA_EXCEEDED", "ITEM_LIMIT", "REFRESH_LIMIT", "FIRST_WOW", "PRO_FEATURE"];
 
 /**
  * Paywall moments: the first wow (right after the first outfits), ITEM_LIMIT, REFRESH_LIMIT. Opens the

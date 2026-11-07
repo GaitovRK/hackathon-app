@@ -6,11 +6,13 @@ import { LookCard } from "@/components/Cards/LookCard";
 import { OutfitCard } from "@/components/Cards/OutfitCard";
 import { ChipRow } from "@/components/Chips/ChipRow";
 import { ItemTile } from "@/components/Items/ItemTile";
+import { IdeasGrid } from "@/components/Ideas/IdeasGrid";
 import { ColorBlocks } from "@/components/Layout/ColorBlocks";
+import { flatLaySlotsOf, flatLaySlotsOfLocked, OutfitFlatLay } from "@/components/Outfit/OutfitFlatLay";
 import { ItemMeter } from "@/components/Status/ItemMeter";
 import { SegmentedProgress } from "@/components/Status/SegmentedProgress";
 import { LOOKS } from "@/content/looks";
-import type { Item, Outfit } from "@/services/api/types";
+import type { Idea, Item, LockedIdea, Outfit } from "@/services/api/types";
 
 /** Dev-only previews of this PR's UI, opened from the floating "Preview" button (coding-conventions). Mock data only. */
 export type Preview = { title: string; render: () => ReactNode };
@@ -57,7 +59,31 @@ export const mockOutfit: Outfit = {
   ],
 };
 
+/** Ideas (#9): two free ideas (one layered, one with a dress) and two locked silhouettes. */
+export const mockIdeas: Idea[] = [
+  { key: "i1+i2+i3+i4", template: "separates_layered", score: 84, reason: mockOutfit.reason, items: mockOutfit.items },
+  {
+    key: "i6+i7+i8",
+    template: "dress",
+    score: 78,
+    reason: "Black head to toe reads polished for an event.",
+    items: [
+      { slot: "dress", item: mockItems[5] },
+      { slot: "shoes", item: mockItems[7] },
+      { slot: "accessory", item: mockItems[6] },
+    ],
+  },
+];
+
+export const mockLockedIdeas: LockedIdea[] = [
+  { key: "locked-1", template: "separates", slots: [{ slot: "top", category: "top", subcategory: "knit" }, { slot: "bottom", category: "bottom", subcategory: "jeans" }, { slot: "shoes", category: "shoes", subcategory: "sneakers" }] },
+  { key: "locked-2", template: "separates_layered", slots: [{ slot: "outerwear", category: "outerwear", subcategory: "blazer" }, { slot: "top", category: "top", subcategory: "shirt" }, { slot: "bottom", category: "bottom", subcategory: "trousers" }, { slot: "shoes", category: "shoes", subcategory: "loafers" }] },
+];
+
 export const previews: Preview[] = [
+  { title: "Outfit — half-and-half flat-lay", render: () => <OutfitFlatLay slots={flatLaySlotsOf(mockOutfit.items)} width={280} /> },
+  { title: "Outfit — locked silhouette", render: () => <OutfitFlatLay slots={flatLaySlotsOfLocked(mockLockedIdeas[1].slots)} width={200} ghost /> },
+  { title: "Ideas — grid (liked + locked)", render: () => <IdeasGrid ideas={mockIdeas} locked={mockLockedIdeas} selected={[mockIdeas[0].key]} width={340} onToggle={() => undefined} onOpen={() => undefined} onUnlock={() => undefined} /> },
   { title: "Today — outfit card", render: () => <OutfitCard outfit={mockOutfit} onWear={() => undefined} onSave={() => undefined} onFeedback={() => undefined} /> },
   {
     title: "Today — card on color blocks",

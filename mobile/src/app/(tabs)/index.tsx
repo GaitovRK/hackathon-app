@@ -5,6 +5,7 @@ import { ButtonPrimary } from "@/components/Buttons/ButtonPrimary";
 import { ButtonSecondary } from "@/components/Buttons/ButtonSecondary";
 import { OutfitCard } from "@/components/Cards/OutfitCard";
 import { ChipRow } from "@/components/Chips/ChipRow";
+import { HomeShortcuts } from "@/components/Home/HomeShortcuts";
 import { ColorBlocks } from "@/components/Layout/ColorBlocks";
 import { Screen } from "@/components/Layout/Screen";
 import { StatusMessage } from "@/components/Status/StatusMessage";
@@ -29,6 +30,7 @@ export default function TodayScreen() {
     <Screen title={t("today.title")}>
       <Text style={{ color: colors.muted, fontSize: fontSize.md, fontFamily: fontFamily.body }}>{t("today.subtitle", { occasion: t(`occasion.${occasion}` as MessageKey).toLowerCase() })}</Text>
       <ChipRow testID="occasion" options={occasionOptions} value={occasion} onChange={(o) => { setOccasion(o); setFront(0); }} scroll />
+      <HomeShortcuts />
       {today.loading ? <StatusMessage kind="loading" message={t("status.loading")} /> : null}
       {today.error ? (
         <>
