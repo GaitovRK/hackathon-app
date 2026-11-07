@@ -7,6 +7,10 @@ export const envSchema = z.object({
   REVENUECAT_SECRET_KEY: z.string().min(1),
   FREE_DAILY_LIMIT: z.coerce.number().int().min(0).default(3),
   PRO_DAILY_LIMIT: z.coerce.number().int().min(0).default(50),
+  /** Free closet size; Pro is unlimited. */
+  FREE_ITEM_LIMIT: z.coerce.number().int().min(0).default(50),
+  /** Free `GET /outfits/today?refresh=1` regenerations per day; Pro is unlimited. */
+  FREE_REFRESH_LIMIT: z.coerce.number().int().min(0).default(1),
   PORT: z.coerce.number().int().positive().default(3000),
 });
 

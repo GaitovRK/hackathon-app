@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Hackathon App",
+    "name": "Flick",
     "slug": "hackathon-app",
     "scheme": "hackathonapp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "platforms": [
       "ios",
       "android"
@@ -29,7 +29,8 @@
         {
           "faceIDPermission": false
         }
-      ]
+      ],
+      "expo-font"
     ]
   }
 }

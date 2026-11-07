@@ -1,14 +1,94 @@
 import type { ReactNode } from "react";
-import { GenerationCard } from "@/components/Cards/GenerationCard";
-import { FreeLeftBadge } from "@/components/Status/FreeLeftBadge";
+import { View } from "react-native";
+import { ButtonPrimary } from "@/components/Buttons/ButtonPrimary";
+import { ButtonSecondary } from "@/components/Buttons/ButtonSecondary";
+import { LookCard } from "@/components/Cards/LookCard";
+import { OutfitCard } from "@/components/Cards/OutfitCard";
+import { ChipRow } from "@/components/Chips/ChipRow";
+import { ItemTile } from "@/components/Items/ItemTile";
+import { ColorBlocks } from "@/components/Layout/ColorBlocks";
+import { ItemMeter } from "@/components/Status/ItemMeter";
+import { SegmentedProgress } from "@/components/Status/SegmentedProgress";
+import { LOOKS } from "@/content/looks";
+import type { Item, Outfit } from "@/services/api/types";
 
-/** Dev-only previews of this PR's UI changes, opened from the floating "Preview" button (coding-conventions). Mock data only. */
+/** Dev-only previews of this PR's UI, opened from the floating "Preview" button (coding-conventions). Mock data only. */
 export type Preview = { title: string; render: () => ReactNode };
 
-const mock = { id: "preview-1", model: "flux-schnell", input: { prompt: "A neon fox in the rain" }, createdAt: new Date(0).toISOString() };
+const item = (id: string, name: string, category: Item["category"], subcategory: string, primaryColor: Item["primaryColor"], pattern: Item["pattern"] = "solid"): Item => ({
+  id,
+  name,
+  category,
+  subcategory,
+  primaryColor,
+  pattern,
+  source: "starter",
+  formality: 3,
+  warmth: 2,
+  seasons: ["autumn"],
+  occasions: ["work"],
+  createdAt: new Date(0).toISOString(),
+});
+
+export const mockItems: Item[] = [
+  item("i1", "White oxford shirt", "top", "shirt", "white"),
+  item("i2", "Navy chinos", "bottom", "chinos", "navy"),
+  item("i3", "Brown loafers", "shoes", "loafers", "brown"),
+  item("i4", "Camel coat", "outerwear", "coat", "camel"),
+  item("i5", "Blue striped shirt", "top", "shirt", "white", "stripe"),
+  item("i6", "Black midi dress", "dress", "midi", "black"),
+  item("i7", "Silver watch", "accessory", "watch", "grey"),
+  item("i8", "White sneakers", "shoes", "sneakers", "white"),
+];
+
+export const mockOutfit: Outfit = {
+  id: "o1",
+  date: "2026-11-07",
+  occasion: "work",
+  score: 84,
+  reason: "Navy + camel reads sharp for work; the camel coat ties it together.",
+  template: "separates_layered",
+  status: "suggested",
+  items: [
+    { slot: "top", item: mockItems[0] },
+    { slot: "bottom", item: mockItems[1] },
+    { slot: "shoes", item: mockItems[2] },
+    { slot: "outerwear", item: mockItems[3] },
+  ],
+};
 
 export const previews: Preview[] = [
-  { title: "Home — generating", render: () => <GenerationCard generation={{ ...mock, status: "running" }} large /> },
-  { title: "Home — failed", render: () => <GenerationCard generation={{ ...mock, status: "failed" }} large /> },
-  { title: "Home — free left badge", render: () => <FreeLeftBadge freeLeftToday={2} isPro={false} /> },
+  { title: "Today — outfit card", render: () => <OutfitCard outfit={mockOutfit} onWear={() => undefined} onSave={() => undefined} onFeedback={() => undefined} /> },
+  {
+    title: "Today — card on color blocks",
+    render: () => (
+      <ColorBlocks colors={mockOutfit.items.map((i) => i.item.primaryColor)} style={{ borderRadius: 26, padding: 16 }}>
+        <OutfitCard outfit={{ ...mockOutfit, status: "worn" }} />
+      </ColorBlocks>
+    ),
+  },
+  { title: "Onboarding — look card", render: () => <LookCard look={LOOKS[2]} /> },
+  { title: "Onboarding — progress 7 / 20", render: () => <SegmentedProgress index={7} total={20} label="7 of 20" /> },
+  {
+    title: "Items — sticker tiles",
+    render: () => (
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        {mockItems.map((i, n) => (
+          <ItemTile key={i.id} garment={i} label thickCut selected={n % 3 === 0} onPress={() => undefined} />
+        ))}
+      </View>
+    ),
+  },
+  { title: "Closet — item meter", render: () => <ItemMeter count={23} limit={50} /> },
+  { title: "Chips — occasions", render: () => <ChipRow options={[{ value: "work", label: "Work" }, { value: "friends", label: "Friends" }, { value: "date", label: "Date" }]} value="work" onChange={() => undefined} /> },
+  {
+    title: "Buttons — chunky",
+    render: () => (
+      <View style={{ gap: 12 }}>
+        <ButtonPrimary label="Build my outfits" onPress={() => undefined} />
+        <ButtonSecondary label="Pass" onPress={() => undefined} />
+        <ButtonPrimary label="Loading" onPress={() => undefined} loading />
+      </View>
+    ),
+  },
 ];

@@ -6,7 +6,11 @@ import { BillingModule } from './billing/billing.module';
 import { ConfigModule } from './config/config.module';
 import { GenerationsModule } from './generations/generations.module';
 import { HealthController } from './health.controller';
+import { ItemsModule } from './items/items.module';
+import { OutfitsModule } from './outfits/outfits.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { StarterCatalogModule } from './starter-catalog/starter-catalog.module';
+import { StyleProfileModule } from './style-profile/style-profile.module';
 
 @Module({
   imports: [
@@ -16,6 +20,10 @@ import { PrismaModule } from './prisma/prisma.module';
     AuthModule,
     BillingModule,
     GenerationsModule,
+    StarterCatalogModule,
+    StyleProfileModule,
+    ItemsModule,
+    OutfitsModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

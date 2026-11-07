@@ -55,3 +55,39 @@ describe('QuotaService', () => {
     await expect(svc.getState('u', NOW)).resolves.toMatchObject({ left: 0 });
   });
 });
+
+describe('QuotaService item and refresh limits', () => {
+  const itemEnv = { FREE_DAILY_LIMIT: 3, PRO_DAILY_LIMIT: 50, FREE_ITEM_LIMIT: 5, FREE_REFRESH_LIMIT: 1 } as Env;
+
+  function buildItems(isPro: boolean, count: number, refreshes = 0) {
+    const prisma = {
+      item: { count: jest.fn().mockResolvedValue(count) },
+      outfitRefresh: { count: jest.fn().mockResolvedValue(refreshes) },
+    } as unknown as PrismaService;
+    const entitlements = { isPro: jest.fn().mockResolvedValue(isPro) } as unknown as EntitlementService;
+    return new QuotaService(itemEnv, prisma, entitlements);
+  }
+
+  it('allows free users under the item limit and reports the limit', async () => {
+    await expect(buildItems(false, 3).assertCanAddItems('u', 2)).resolves.toEqual({ isPro: false, limit: 5, count: 3 });
+  });
+
+  it('throws 402 ITEM_LIMIT when the bulk add would exceed the free limit', async () => {
+    const err = await buildItems(false, 3).assertCanAddItems('u', 3).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(HttpException);
+    expect((err as HttpException).getStatus()).toBe(402);
+    expect((err as HttpException).getResponse()).toMatchObject({ code: 'ITEM_LIMIT', statusCode: 402, limit: 5, count: 3 });
+  });
+
+  it('pro users have no item limit', async () => {
+    await expect(buildItems(true, 500).assertCanAddItems('u', 100)).resolves.toEqual({ isPro: true, limit: null, count: 500 });
+  });
+
+  it('free users get FREE_REFRESH_LIMIT refreshes per day, pro unlimited', async () => {
+    const date = new Date('2026-03-10');
+    await expect(buildItems(false, 0, 0).assertCanRefresh('u', date)).resolves.toMatchObject({ left: 1 });
+    const err = await buildItems(false, 0, 1).assertCanRefresh('u', date).catch((e: unknown) => e);
+    expect((err as HttpException).getResponse()).toMatchObject({ code: 'REFRESH_LIMIT', statusCode: 402 });
+    await expect(buildItems(true, 0, 99).assertCanRefresh('u', date)).resolves.toMatchObject({ isPro: true });
+  });
+});
