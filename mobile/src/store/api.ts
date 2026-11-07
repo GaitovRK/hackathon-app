@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery, type BaseQueryFn, type FetchArgs, type FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
+import { File } from "expo-file-system";
 import { API_URL } from "@/services/api/config";
 import { notifyQuotaExceeded } from "@/services/api/quotaHandler";
 import {
@@ -116,11 +117,14 @@ export const api = createApi({
       query: (starterKeys) => ({ url: "items/starter", method: "POST", body: { starterKeys } }),
       invalidatesTags: ["Me", "Outfit", { type: "Item", id: "LIST" }],
     }),
-    /** Multipart upload (field `photo`, JPEG); fetch sets the boundary, so no Content-Type here. Takes 5–20 s (cutout + tagging). */
+    /**
+     * Multipart upload (field `photo`); fetch sets the boundary, so no Content-Type here. Takes 5–20 s (cutout + tagging).
+     * expo/fetch only accepts Blob parts (not RN's `{ uri, name, type }`), so the picked file goes in as an expo-file-system `File`.
+     */
     uploadItemPhoto: build.mutation<ItemPhotoResponse, ItemPhotoUpload>({
-      query: ({ uri, mimeType, fileName }) => {
+      query: ({ uri, fileName }) => {
         const body = new FormData();
-        body.append("photo", { uri, name: fileName ?? "photo.jpg", type: mimeType ?? "image/jpeg" } as unknown as Blob);
+        body.append("photo", new File(uri), fileName ?? undefined);
         return { url: "items/photo", method: "POST", body };
       },
       invalidatesTags: ["Me", "Outfit", { type: "Item", id: "LIST" }],

@@ -9,7 +9,7 @@ import { getStarterItem } from '../starter-catalog/catalog';
 import { COLORS, ITEM_CATEGORIES, parsePhotoTags, TAGGING_PROMPT, TAGGING_SYSTEM_PROMPT } from './photo-tags';
 
 export const PHOTO_MIME_TYPES = ['image/jpeg', 'image/png', 'image/heic', 'image/webp'] as const;
-export const PHOTO_MAX_BYTES = 10 * 1024 * 1024;
+export const PHOTO_MAX_BYTES = 20 * 1024 * 1024;
 
 export interface UploadedPhoto {
   buffer: Buffer;
@@ -105,7 +105,7 @@ export class ItemsService {
    */
   async addFromPhoto(userId: string, photo: UploadedPhoto | undefined): Promise<PhotoItemResult> {
     if (!photo || !(PHOTO_MIME_TYPES as readonly string[]).includes(photo.mimetype) || photo.size > PHOTO_MAX_BYTES || photo.size === 0) {
-      throw new BadRequestException({ code: 'INVALID_PHOTO', message: 'Send one jpeg, png, heic or webp photo up to 10 MB in the "photo" field' });
+      throw new BadRequestException({ code: 'INVALID_PHOTO', message: 'Send one jpeg, png, heic or webp photo up to 20 MB in the "photo" field' });
     }
     await this.quota.assertCanAddItems(userId, 1);
 

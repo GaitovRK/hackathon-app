@@ -24,3 +24,12 @@ jest.mock("expo-secure-store", () => {
     deleteItemAsync: jest.fn(async (k: string) => void store.delete(k)),
   };
 });
+
+// expo-file-system's File is a Blob backed by a native file; tests only need a Blob.
+jest.mock("expo-file-system", () => ({
+  File: class extends Blob {
+    constructor() {
+      super(["photo"], { type: "image/jpeg" });
+    }
+  },
+}));

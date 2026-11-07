@@ -20,7 +20,7 @@ export class ItemsController {
     return this.items.addFromStarter(userId, body);
   }
 
-  /** multipart/form-data, one `photo` file (jpeg/png/heic/webp, ≤ 10 MB) → `{ item, tagged }`. */
+  /** multipart/form-data, one `photo` file (jpeg/png/heic/webp, ≤ 20 MB) → `{ item, tagged }`. */
   @Post('photo')
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @UseInterceptors(FileInterceptor('photo', { limits: { fileSize: PHOTO_MAX_BYTES, files: 1 } }))
