@@ -24,6 +24,7 @@ model User {
   outfits      Outfit[]
   feedback     OutfitFeedback[]
   wears        Wear[]
+  refreshes    OutfitRefresh[]
 }
 
 model Generation {
@@ -263,6 +264,18 @@ model OutfitFeedback {
   createdAt DateTime      @default(now())
 
   @@index([userId, createdAt])
+}
+
+/// One row per `GET /outfits/today?refresh=1`; counted for the free refresh limit.
+model OutfitRefresh {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  occasion  Occasion
+  createdAt DateTime @default(now())
+
+  @@index([userId, date])
 }
 
 model Wear {
