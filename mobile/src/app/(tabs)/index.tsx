@@ -13,7 +13,7 @@ import { StatusMessage } from "@/components/Status/StatusMessage";
 import { useToday } from "@/hooks/outfits/useToday";
 import { t, type MessageKey } from "@/i18n/t";
 import { OCCASIONS, type Occasion } from "@/services/api/types";
-import { openAddItems, openSettings } from "@/services/navigation/routes";
+import { openAddItems, openAddPhoto, openSettings } from "@/services/navigation/routes";
 import { presentPaywall } from "@/services/purchases/presentPaywall";
 import { useAppSelector } from "@/store";
 import { useItemsQuery, useMeQuery } from "@/store/api";
@@ -131,7 +131,7 @@ export default function TodayScreen() {
           progressLabel={t("home.checklistProgress", { done, total: SETUP_STEPS })}
           title={nextIsPhotos ? t("home.checklistPhotos") : t("home.checklistWear")}
           subtitle={nextIsPhotos ? t("home.checklistPhotosBody") : t("home.checklistWearBody")}
-          onPress={nextIsPhotos ? openAddItems : undefined}
+          onPress={nextIsPhotos ? openAddPhoto : undefined}
         />
       ) : null}
     </Screen>

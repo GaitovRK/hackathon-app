@@ -2,7 +2,7 @@ import { Redirect, Tabs } from "expo-router";
 import { Screen } from "@/components/Layout/Screen";
 import { TabBar, type TabItem } from "@/components/Navigation/TabBar";
 import { StatusMessage } from "@/components/Status/StatusMessage";
-import { openAddItems } from "@/services/navigation/routes";
+import { openAddPhoto } from "@/services/navigation/routes";
 import { t } from "@/i18n/t";
 import { useAppSelector } from "@/store";
 import { useStyleProfileQuery } from "@/store/api";
@@ -35,7 +35,7 @@ export default function TabsLayout() {
           tabs={BAR_TABS}
           active={state.routes[state.index]?.name ?? "index"}
           onTab={(name) => navigation.navigate(name)}
-          onAdd={openAddItems}
+          onAdd={openAddPhoto}
           addLabel={t("home.addItems")}
         />
       )}

@@ -1,0 +1,47 @@
+# Photo items (#21): tab bar + → Add from a photo → Choose from library → processing → result card → fix it → Done → Closet.
+# Needs an onboarded user, the dev build with expo-image-picker, a photo in the library and a running server (not run by agents).
+appId: com.gaitov.hackathonapp
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "tab-add"
+    timeout: 15000
+- tapOn:
+    id: "tab-add"
+- assertVisible:
+    id: "add-photo-pick"
+- tapOn:
+    id: "add-photo-library"
+# iOS photo-access prompt (first run only)
+- tapOn:
+    text: "Allow Full Access"
+    optional: true
+# Pick the most recent photo in the system picker
+- tapOn:
+    point: "15%,30%"
+- extendedWaitUntil:
+    visible:
+      id: "add-photo-processing"
+    timeout: 10000
+- extendedWaitUntil:
+    visible:
+      id: "add-photo-result"
+    timeout: 40000
+- tapOn:
+    id: "add-photo-fix"
+    optional: true
+- tapOn:
+    id: "add-photo-category-top"
+- tapOn:
+    id: "add-photo-save"
+- extendedWaitUntil:
+    visible:
+      id: "add-photo-fix"
+    timeout: 10000
+- tapOn:
+    id: "add-photo-done"
+- extendedWaitUntil:
+    visible:
+      id: "closet-grid"
+    timeout: 10000

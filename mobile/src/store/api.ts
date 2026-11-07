@@ -11,6 +11,8 @@ import {
   type IdeasResponse,
   type Item,
   type ItemPatch,
+  type ItemPhotoResponse,
+  type ItemPhotoUpload,
   type MeResponse,
   type Outfit,
   type SaveManyRequest,
@@ -114,6 +116,15 @@ export const api = createApi({
       query: (starterKeys) => ({ url: "items/starter", method: "POST", body: { starterKeys } }),
       invalidatesTags: ["Me", "Outfit", { type: "Item", id: "LIST" }],
     }),
+    /** Multipart upload (field `photo`, JPEG); fetch sets the boundary, so no Content-Type here. Takes 5–20 s (cutout + tagging). */
+    uploadItemPhoto: build.mutation<ItemPhotoResponse, ItemPhotoUpload>({
+      query: ({ uri, mimeType, fileName }) => {
+        const body = new FormData();
+        body.append("photo", { uri, name: fileName ?? "photo.jpg", type: mimeType ?? "image/jpeg" } as unknown as Blob);
+        return { url: "items/photo", method: "POST", body };
+      },
+      invalidatesTags: ["Me", "Outfit", { type: "Item", id: "LIST" }],
+    }),
     patchItem: build.mutation<Item, { id: string; patch: ItemPatch }>({
       query: ({ id, patch }) => ({ url: `items/${id}`, method: "PATCH", body: patch }),
       invalidatesTags: (_r, _e, { id }) => ["Outfit", { type: "Item", id }, { type: "Item", id: "LIST" }],
@@ -169,6 +180,7 @@ export const {
   useItemsQuery,
   useAddStarterItemsMutation,
   usePatchItemMutation,
+  useUploadItemPhotoMutation,
   useArchiveItemMutation,
   useTodayQuery,
   useRefreshTodayMutation,

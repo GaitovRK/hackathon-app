@@ -25,6 +25,8 @@ type Props = {
   toCheckCount: number;
   onOpenItem: (item: Item) => void;
   onAddBasics: () => void;
+  /** Add your own clothes from a photo (#21); omitted = only "Add basics". */
+  onAddPhoto?: () => void;
   onCheckNew?: () => void;
 };
 
@@ -32,11 +34,12 @@ type Props = {
  * Closet option A "Wardrobe grid": title + item meter, search + sort, category chips with counts,
  * sort label + "N new items to check", then a 3-column cutout grid. Presentational; the tab screen loads data.
  */
-export function ClosetView({ items, itemCount, itemLimit, toCheckCount, onOpenItem, onAddBasics, onCheckNew }: Props) {
+export function ClosetView({ items, itemCount, itemLimit, toCheckCount, onOpenItem, onAddBasics, onAddPhoto, onCheckNew }: Props) {
   const { colors, spacing, fontSize, fontFamily } = useTheme();
   const { query, setQuery, category, setCategory, sort, setSort, counts, visible } = useClosetFilters(items);
   const [sortOpen, setSortOpen] = useState(false);
   const toggleSort = () => setSortOpen((o) => !o);
+  const addPhoto = onAddPhoto ? <ButtonPrimary testID="closet-add-photo" label={t("addPhoto.closetAction")} onPress={onAddPhoto} /> : null;
 
   return (
     <View style={{ gap: spacing.lg }}>
@@ -50,6 +53,7 @@ export function ClosetView({ items, itemCount, itemLimit, toCheckCount, onOpenIt
       {items.length === 0 ? (
         <View testID="closet-empty" style={{ gap: spacing.md }}>
           <StatusMessage kind="info" message={t("closet.empty")} />
+          {addPhoto}
           <ButtonPrimary testID="closet-add-basics" label={t("closet.addStarter")} onPress={onAddBasics} />
         </View>
       ) : (
@@ -79,6 +83,7 @@ export function ClosetView({ items, itemCount, itemLimit, toCheckCount, onOpenIt
           ) : (
             <StatusMessage kind="info" message={t("closet.noMatches")} />
           )}
+          {addPhoto}
           <ButtonSecondary testID="closet-add" label={t("closet.addStarter")} onPress={onAddBasics} />
         </>
       )}
