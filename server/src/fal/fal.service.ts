@@ -18,6 +18,17 @@ export class FalService {
     fal.config({ credentials: env.FAL_KEY });
   }
 
+  /** Uploads bytes to fal storage; returns the hosted URL (never log it). */
+  async upload(data: Buffer, contentType: string): Promise<string> {
+    return fal.storage.upload(new Blob([new Uint8Array(data)], { type: contentType }));
+  }
+
+  /** Runs an allowlisted endpoint synchronously (queue + wait) and returns the raw result data. */
+  async run(endpoint: string, input: Record<string, unknown>, timeoutMs = 45_000): Promise<unknown> {
+    const res = await fal.subscribe(endpoint, { input, logs: false, timeout: timeoutMs, pollInterval: 1000 });
+    return res.data;
+  }
+
   async submit(endpoint: string, input: Record<string, unknown>): Promise<{ requestId: string }> {
     const res = await fal.queue.submit(endpoint, { input });
     return { requestId: res.request_id };

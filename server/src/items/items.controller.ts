@@ -1,7 +1,9 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Throttle } from '@nestjs/throttler';
 import type { Item } from '@prisma/client';
 import { UserId } from '../auth/user-id.decorator';
-import { ItemsService } from './items.service';
+import { ItemsService, PHOTO_MAX_BYTES, type PhotoItemResult, type UploadedPhoto } from './items.service';
 
 @Controller('items')
 export class ItemsController {
@@ -16,6 +18,14 @@ export class ItemsController {
   @Post('starter')
   addFromStarter(@UserId() userId: string, @Body() body: unknown): Promise<Item[]> {
     return this.items.addFromStarter(userId, body);
+  }
+
+  /** multipart/form-data, one `photo` file (jpeg/png/heic/webp, ≤ 10 MB) → `{ item, tagged }`. */
+  @Post('photo')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @UseInterceptors(FileInterceptor('photo', { limits: { fileSize: PHOTO_MAX_BYTES, files: 1 } }))
+  addFromPhoto(@UserId() userId: string, @UploadedFile() photo?: UploadedPhoto): Promise<PhotoItemResult> {
+    return this.items.addFromPhoto(userId, photo);
   }
 
   @Patch(':id')
