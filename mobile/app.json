@@ -13,7 +13,8 @@
     ],
     "ios": {
       "bundleIdentifier": "com.gaitov.hackathonapp",
-      "buildNumber": "1",
+      "appleTeamId": "4Z7HNGC242",
+      "buildNumber": "2",
       "supportsTablet": false,
       "config": {
         "usesNonExemptEncryption": false
@@ -21,7 +22,7 @@
     },
     "android": {
       "package": "com.gaitov.hackathonapp",
-      "versionCode": 1
+      "versionCode": 2
     },
     "plugins": [
       "expo-router",
