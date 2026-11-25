@@ -21,3 +21,9 @@ pnpm dlx expo-doctor
 - `ios/` and `android/` are generated (CNG) and not committed. Native changes → new dev build (`pnpm dlx eas-cli build --profile development`, owner only).
 - Never run simulators, EAS builds or submits from an agent. Maestro flows in `.maestro/` are written, not run.
 - Dev preview: `src/dev/previews.tsx` + `DevPreviewButton` (two `DEV-PREVIEW` lines in `src/app/_layout.tsx`, removed with `bash scripts/agents/remove-dev-preview.sh`).
+
+## Release (TestFlight, owner only)
+- Release builds call `PRODUCTION_API_URL` (`https://flick-api.gaitovlabs.com`), never `EXPO_PUBLIC_API_URL`; RevenueCat `test_` keys are dropped in release (purchases off).
+- `mobile/.env.production` (gitignored): `EXPO_PUBLIC_REVENUECAT_IOS_KEY=appl_…`.
+- Bump `expo.ios.buildNumber` in `app.json` for every upload, then `pnpm expo prebuild --platform ios` and open `ios/Flick.xcworkspace`.
+- Xcode: target Flick → Signing & Capabilities → Team; scheme Release, device "Any iOS Device (arm64)"; Product → Archive → Distribute App → App Store Connect.

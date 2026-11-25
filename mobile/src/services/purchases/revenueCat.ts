@@ -5,9 +5,21 @@ import Purchases from "react-native-purchases";
 export const PRO_ENTITLEMENT = "pro";
 export const DEFAULT_OFFERING = "default";
 
+/**
+ * RevenueCat Test Store keys (`test_…`) only work in dev builds: RevenueCat refuses them in release builds,
+ * so there purchases stay off instead. Release builds need the App Store key (`appl_…`, `.env.production`).
+ */
+export function resolveRevenueCatKey(isDev: boolean, key: string | undefined) {
+  if (!key) return undefined;
+  return !isDev && key.startsWith("test_") ? undefined : key;
+}
+
 /** RevenueCat public SDK key for this platform (see .env.example); without it purchases are disabled. */
 const apiKey = () =>
-  Platform.select({ ios: process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY, android: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY }) || undefined;
+  resolveRevenueCatKey(
+    __DEV__,
+    Platform.select({ ios: process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY, android: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY }),
+  );
 
 export const isPurchasingEnabled = () => !!apiKey();
 
