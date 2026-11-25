@@ -26,5 +26,5 @@ pnpm dlx expo-doctor
 - Release builds call `PRODUCTION_API_URL` (`https://flick-api.gaitovlabs.com`), never `EXPO_PUBLIC_API_URL`; RevenueCat `test_` keys are dropped in release (purchases off).
 - `mobile/.env.production` (gitignored): `EXPO_PUBLIC_REVENUECAT_IOS_KEY=appl_…`.
 - Bundle ID `com.gaitovrk.flick`, team `4Z7HNGC242` (same `com.gaitovrk.*` pattern as the other apps).
-- Bump `expo.ios.buildNumber` in `app.json` for every upload, then `pnpm expo prebuild --platform ios` and open `ios/Flick.xcworkspace`.
-- Xcode: scheme Release, device "Any iOS Device (arm64)"; Product → Archive → Distribute App → App Store Connect.
+- App Store Connect app: "Flick: AI Outfit Planner" (SKU `flick-ios`).
+- Upload: bump `expo.ios.buildNumber` in `app.json` (every upload after build 1), then `bash scripts/release/testflight.sh` (prebuild → `xcodebuild archive` → `-exportArchive` upload with Xcode's account, `scripts/release/ExportOptions.plist`). Needs ~10 GB free disk.
