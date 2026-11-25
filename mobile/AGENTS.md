@@ -25,5 +25,6 @@ pnpm dlx expo-doctor
 ## Release (TestFlight, owner only)
 - Release builds call `PRODUCTION_API_URL` (`https://flick-api.gaitovlabs.com`), never `EXPO_PUBLIC_API_URL`; RevenueCat `test_` keys are dropped in release (purchases off).
 - `mobile/.env.production` (gitignored): `EXPO_PUBLIC_REVENUECAT_IOS_KEY=appl_…`.
+- Bundle ID `com.gaitovrk.flick`, team `4Z7HNGC242` (same `com.gaitovrk.*` pattern as the other apps).
 - Bump `expo.ios.buildNumber` in `app.json` for every upload, then `pnpm expo prebuild --platform ios` and open `ios/Flick.xcworkspace`.
-- Xcode: target Flick → Signing & Capabilities → Team; scheme Release, device "Any iOS Device (arm64)"; Product → Archive → Distribute App → App Store Connect.
+- Xcode: scheme Release, device "Any iOS Device (arm64)"; Product → Archive → Distribute App → App Store Connect.

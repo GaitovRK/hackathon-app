@@ -12,7 +12,8 @@
       "android"
     ],
     "ios": {
-      "bundleIdentifier": "com.gaitov.hackathonapp",
+      "bundleIdentifier": "com.gaitovrk.flick",
+      "appleTeamId": "4Z7HNGC242",
       "buildNumber": "1",
       "supportsTablet": false,
       "config": {
@@ -20,7 +21,7 @@
       }
     },
     "android": {
-      "package": "com.gaitov.hackathonapp",
+      "package": "com.gaitovrk.flick",
       "versionCode": 1
     },
     "plugins": [

@@ -1,6 +1,6 @@
 # Outfit flows (#9): Home → Generate (quick questions) → Ideas grid (like 2, save) → Outfit detail (worn) → Dress me (pin, shuffle, save).
 # Needs an onboarded user, the dev build and a running server (not run by agents).
-appId: com.gaitov.hackathonapp
+appId: com.gaitovrk.flick
 ---
 - launchApp
 - extendedWaitUntil:

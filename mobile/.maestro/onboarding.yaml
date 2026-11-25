@@ -1,6 +1,6 @@
 # First run: welcome → swipe deck → questions → starter closet → Today shows 3 outfits → mark one worn.
 # Needs the dev build and a running server (not run by agents).
-appId: com.gaitov.hackathonapp
+appId: com.gaitovrk.flick
 ---
 - launchApp:
     clearState: true
