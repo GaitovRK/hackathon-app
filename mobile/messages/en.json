@@ -111,6 +111,8 @@
   "settings.free": "Free",
   "status.loading": "Loading…",
   "status.error": "Something went wrong.",
+  "status.offline": "Can't reach Flick right now. Check your connection and try again.",
+  "status.retry": "Try again",
   "dev.preview": "Preview",
   "dev.allPreviews": "← All previews",
   "home.generate": "Generate ideas",
