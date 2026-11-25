@@ -10,4 +10,10 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     },
   },
+  {
+    // Vercel function entry: plain CommonJS that loads the compiled app.
+    files: ['api/**/*.js'],
+    languageOptions: { sourceType: 'commonjs', globals: { require: 'readonly', module: 'writable' } },
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
+  },
 );

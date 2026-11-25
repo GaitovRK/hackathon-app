@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "DATABASE_URL=\"$DATABASE_URL_UNPOOLED\" pnpm prisma migrate deploy && pnpm run build && mkdir -p public && echo ok > public/robots.txt",
+  "outputDirectory": "public",
+  "regions": ["fra1"],
+  "functions": { "api/index.js": { "maxDuration": 60, "includeFiles": "dist/**" } },
+  "rewrites": [{ "source": "/(.*)", "destination": "/api" }]
+}
