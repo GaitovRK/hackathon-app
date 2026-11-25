@@ -1,6 +1,6 @@
 # Tab bar + bubble (#33): + → bubble → tap outside closes → + → Create an outfit → Dress me.
 # Needs an onboarded user, the dev build and a running server (not run by agents).
-appId: com.gaitov.hackathonapp
+appId: com.gaitovrk.flick
 ---
 - launchApp
 - extendedWaitUntil:
